@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, dev]
+  pull_request:
+    branches: [main, develop, dev]
+
+jobs:
+  # ── ESLint ────────────────────────────────────────────────────────────────
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # ── Tests + Coverage ──────────────────────────────────────────────────────
+  test:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      PORT: 5001
+      SOCKET_PORT: 5005
+
+      # MongoDB
+      MONGO_IP: mongodb://localhost:27017
+      MONGO_IP_LOCAL: mongodb://localhost:27017
+      MONGO_DB: realistanDB_test
+      MONGODB_URI: mongodb://localhost:27017/realistanDB_test
+
+      # Redis
+      REDIS_URL: redis://localhost:6379
+      REDIS_SERVER: localhost
+      REDIS_PORT: 6379
+      CHECK_REDIS: 'false'
+
+      # JWT — test-only secrets, NOT real values
+      JWT_SIG: ci_test_jwt_sig
+      JWT_SECRET: ci_test_jwt_secret
+      JWT_ACCESS_TOKEN_SECRET: ci_test_access_secret
+      JWT_ACCESS_TOKEN_SECRET_EXPIRY: 7d
+      JWT_ACCESS_EXPIRES: 15m
+      JWT_REFRESH_EXPIRES: 7d
+      JWT_ADMIN_SECRET: ci_test_admin_secret
+
+      # OTP
+      OTP_DEV_MODE: 'true'
+      OTP_LENGTH: 6
+      OTP_EXPIRY_SECONDS: 600
+      OTP_MAX_ATTEMPTS: 3
+      OTP_SEND_ENABLED: 'false'
+      SUPER_ADMIN_OTP: '964321'
+
+      # Disable real external services in tests
+      AWS_REGION: ap-south-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_S3_BUCKET: test-bucket
+
+      ELASTIC_SEARCH_IP: http://localhost:9200
+
+      FRONTEND_URLS: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_URL: http://localhost:3001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              console.log('Coverage Summary:');
+              console.log('  Statements : ' + s.statements.pct + '%');
+              console.log('  Branches   : ' + s.branches.pct + '%');
+              console.log('  Functions  : ' + s.functions.pct + '%');
+              console.log('  Lines      : ' + s.lines.pct + '%');
+            "
+          fi

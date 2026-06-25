@@ -1,0 +1,14 @@
+{
+  "id": "realistan-env-local",
+  "name": "realistan_one_backend_local",
+  "values": [
+    { "key": "url",       "value": "http://localhost:5001", "type": "default", "enabled": true },
+    { "key": "auth_base", "value": "api/v1/auth",           "type": "default", "enabled": true },
+    { "key": "re_base",   "value": "api/v1/realestate/auth","type": "default", "enabled": true },
+    { "key": "se_base",   "value": "api/v1/serveease/auth", "type": "default", "enabled": true },
+    { "key": "admin_base","value": "api/v1/admin-auth",     "type": "default", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-06-23T00:00:00.000Z",
+  "_postman_exported_using": "Postman"
+}

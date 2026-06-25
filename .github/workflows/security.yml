@@ -1,0 +1,106 @@
+name: Security
+
+on:
+  push:
+    branches: [main, develop, dev]
+  pull_request:
+    branches: [main, develop, dev]
+
+jobs:
+  # ── Secret Scanning (Gitleaks) ────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Sensitive File Check ──────────────────────────────────────────────────
+  sensitive-files:
+    name: Sensitive File Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure no secrets or key files are committed
+        run: |
+          FAIL=0
+
+          # Exact filenames that must never be committed
+          BLOCKED_FILES=(
+            ".env"
+            ".env.local"
+            ".env.production"
+            ".env.staging"
+            ".env.dev"
+            "config/firebase-service-account.json"
+            "firebase-service-account.json"
+            "service-account.json"
+            "google-credentials.json"
+          )
+
+          # Extension patterns that must never be committed
+          BLOCKED_EXTS="\.pem$|\.key$|\.p12$|\.pfx$|\.jks$|\.keystore$"
+
+          for f in "${BLOCKED_FILES[@]}"; do
+            if git ls-files --error-unmatch "$f" 2>/dev/null; then
+              echo "::error::Sensitive file committed: $f"
+              FAIL=1
+            fi
+          done
+
+          # Check for private key / cert extensions
+          FOUND_EXTS=$(git ls-files | grep -E "$BLOCKED_EXTS" || true)
+          if [ -n "$FOUND_EXTS" ]; then
+            echo "::error::Sensitive file extension(s) found in repo:"
+            echo "$FOUND_EXTS"
+            FAIL=1
+          fi
+
+          # Check for suspicious inline secrets patterns in source files
+          # (catches copy-pasted keys that gitleaks might miss)
+          SUSPICIOUS=$(git ls-files '*.js' '*.ts' '*.json' \
+            | xargs grep -l \
+              -e 'sk_live_' \
+              -e 'rzp_live_' \
+              -e 'AKIA[0-9A-Z]\{16\}' \
+              -e 'AIza[0-9A-Za-z_-]\{35\}' \
+              2>/dev/null || true)
+          if [ -n "$SUSPICIOUS" ]; then
+            echo "::error::Possible hardcoded production keys in:"
+            echo "$SUSPICIOUS"
+            FAIL=1
+          fi
+
+          if [ $FAIL -eq 1 ]; then
+            echo ""
+            echo "Fix: add the file to .gitignore and run 'git rm --cached <file>'"
+            exit 1
+          fi
+
+          echo "No sensitive files found."
+
+  # ── Dependency Vulnerability Audit ───────────────────────────────────────
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit for high/critical vulnerabilities
+        run: npm audit --audit-level=high
+        # Use --audit-level=moderate to be stricter

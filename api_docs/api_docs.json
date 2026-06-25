@@ -1,0 +1,5075 @@
+{
+  "info": {
+    "name": "Realistan One Backend",
+    "_postman_id": "realistan-one-backend-collection",
+    "description": "Complete API collection for Realistan One Backend.\n\nImport this collection then import the three environment files (env_local.json, env_dev.json, env_prod.json).\n\nToken variables \u2014 set these in collection variables after login:\n- re_token          Realestate JWT\n- se_access_token   ServeEase access token\n- se_refresh_token  ServeEase refresh token\n- admin_token       Admin JWT",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "re_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "se_access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "se_refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Unified Auth",
+      "item": [
+        {
+          "name": "Send OTP \u2014 Realestate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/send-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "send-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"realestate\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify OTP \u2014 Realestate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/verify-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"realestate\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send OTP \u2014 ServeEase Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/send-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "send-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"role\": \"customer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send OTP \u2014 ServeEase Agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/send-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "send-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"role\": \"agent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify OTP \u2014 ServeEase",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/verify-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"otp\": \"123456\",\n  \"role\": \"customer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refresh Token (ServeEase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/refresh",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{se_refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login by Social \u2014 Google/Apple/Facebook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/loginbysocial",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "loginbysocial"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<google_id_token>\",\n  \"socialType\": \"google\",\n  \"platform\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "socialType: google | apple | facebook\nplatform: ios | android | web"
+          }
+        },
+        {
+          "name": "Login by Truecaller",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/auth/loginbytruecaller",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "loginbytruecaller"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"<truecaller_code>\",\n  \"code_verifier\": \"<pkce_verifier>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Auth",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/admin-auth/send-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin-auth",
+                "send-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9591972808\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/admin-auth/verify-otp",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin-auth",
+                "verify-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9591972808\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login (email + password)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/api/v1/admin-auth/login",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin-auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@realistan.in\",\n  \"password\": \"<password>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Realestate",
+      "item": [
+        {
+          "name": "Auth (legacy)",
+          "item": [
+            {
+              "name": "Send OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/loginbymobile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "loginbymobile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mobile\": \"9591972808\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verify OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/loginbymobile/verify",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "loginbymobile",
+                    "verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"otp\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/getprofile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "getprofile"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update User Details",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/updateuserdetails",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "updateuserdetails"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"whatsappFlag\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Login by Social",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/loginbysocial",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "loginbysocial"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idToken\": \"<google_id_token>\",\n  \"socialType\": \"google\",\n  \"platform\": \"android\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Login by Truecaller",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/loginbytruecaller",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "loginbytruecaller"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"<truecaller_code>\",\n  \"code_verifier\": \"<pkce_verifier>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/logout",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Properties",
+          "item": [
+            {
+              "name": "Get Trending",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/trending",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "trending"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Properties",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/getproperties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "getproperties"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"city\": \"Bangalore\",\n  \"propertyType\": \"apartment\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Homepage Properties",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/homepageproperties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "homepageproperties"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Property by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/getpropertybyid",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "getpropertybyid"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"propertyId\": \"<propertyId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Related Properties",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/getrelatedproperties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "getrelatedproperties"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"propertyId\": \"<propertyId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Search Properties",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/searchfunc",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "searchfunc"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"2BHK Bangalore\",\n  \"page\": 1,\n  \"limit\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Add Property",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/addproperties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "addproperties"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"2BHK Apartment\",\n  \"city\": \"Bangalore\",\n  \"price\": 5000000,\n  \"propertyType\": \"apartment\",\n  \"bhk\": 2,\n  \"area\": 1200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update Property",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/updateproperty",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "updateproperty"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"propertyId\": \"<propertyId>\",\n  \"price\": 5500000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "My Properties",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/myproperties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "myproperties"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Shortlist",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/shortlist",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "shortlist"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"propertyId\": \"<propertyId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Shortlisted",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/shortlisted",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "shortlisted"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Property",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/properties/deleteproperty",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "properties",
+                    "deleteproperty"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"propertyId\": \"<propertyId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Articles",
+          "item": [
+            {
+              "name": "Get Homepage Articles",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/articles/homepagearticles",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "articles",
+                    "homepagearticles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Article by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/articles/getarticlebyid",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "articles",
+                    "getarticlebyid"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"articleId\": \"<articleId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contact",
+          "item": [
+            {
+              "name": "Request Callback",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}",
+                    "description": "Optional"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/contact/requestcallback",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "contact",
+                    "requestcallback"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"mobile\": \"9591972808\",\n  \"propertyId\": \"<propertyId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Realestate Admin",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/auth/login",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@realistan.in\",\n  \"password\": \"<password>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin Users",
+          "item": [
+            {
+              "name": "Get Admin List",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/admin/users",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "admin",
+                    "users"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Add Admin User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/admin/users",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "admin",
+                    "users"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"newadmin@realistan.in\",\n  \"password\": \"<password>\",\n  \"readAccess\": [\"User\", \"Articles\"],\n  \"writeAccess\": [\"Articles\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Edit Admin User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/admin/users/:userID",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "admin",
+                    "users",
+                    ":userID"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userID",
+                      "value": "<userID>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"readAccess\": [\"User\", \"Articles\"],\n  \"writeAccess\": [\"Articles\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Properties",
+          "item": [
+            {
+              "name": "Get All Properties",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/properties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "properties"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Property Details",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/properties/:propertyID",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "properties",
+                    ":propertyID"
+                  ],
+                  "variable": [
+                    {
+                      "key": "propertyID",
+                      "value": "<propertyID>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Add Property",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/properties",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "properties"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"3BHK Villa\",\n  \"city\": \"Bangalore\",\n  \"price\": 12000000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Edit Property",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/properties/:propertyID",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "properties",
+                    ":propertyID"
+                  ],
+                  "variable": [
+                    {
+                      "key": "propertyID",
+                      "value": "<propertyID>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"price\": 13000000,\n  \"status\": \"sold\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Homepage",
+          "item": [
+            {
+              "name": "Add Categories",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate-admin/homepage/categories",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate-admin",
+                    "homepage",
+                    "categories"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"categories\": [\"Apartment\", \"Villa\", \"Plot\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ServeEase",
+      "item": [
+        {
+          "name": "Auth (legacy)",
+          "item": [
+            {
+              "name": "Send OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/send-otp",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "send-otp"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"role\": \"customer\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verify OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/verify-otp",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "verify-otp"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"otp\": \"123456\",\n  \"role\": \"customer\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Refresh Token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/refresh",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{se_refresh_token}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Me",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/me",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "me"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Profile",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/profile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"age\": 28\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Loyalty",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/loyalty",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "loyalty"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Favorite",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/favorites/:serviceId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "favorites",
+                    ":serviceId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "serviceId",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Add Address",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/addresses",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "addresses"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"label\": \"Home\",\n  \"addressLine\": \"123 MG Road\",\n  \"city\": \"Bangalore\",\n  \"pincode\": \"560001\",\n  \"lat\": 12.9716,\n  \"lng\": 77.5946,\n  \"isDefault\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Remove Address",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/addresses/:addressId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "addresses",
+                    ":addressId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "addressId",
+                      "value": "<addressId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Set Default Address",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/addresses/:addressId/default",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "addresses",
+                    ":addressId",
+                    "default"
+                  ],
+                  "variable": [
+                    {
+                      "key": "addressId",
+                      "value": "<addressId>"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Services",
+          "item": [
+            {
+              "name": "Get Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/categories",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    "categories"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Services",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services?city=Bangalore&page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services"
+                  ],
+                  "query": [
+                    {
+                      "key": "categoryId",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "city",
+                      "value": "Bangalore"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Service by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Bundle Suggestions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/:id/bundles",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    ":id",
+                    "bundles"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Surge Price",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/:id/surge",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    ":id",
+                    "surge"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Create Category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/categories",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    "categories"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Cleaning\",\n  \"slug\": \"cleaning\",\n  \"icon\": \"https://example.com/icon.png\",\n  \"description\": \"Home cleaning services\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Admin] Update Category",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/categories/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    "categories",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<categoryId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Deep Cleaning\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Admin] Create Service",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Kitchen Deep Clean\",\n  \"slug\": \"kitchen-deep-clean\",\n  \"categoryId\": \"<categoryId>\",\n  \"basePrice\": 799,\n  \"durationMinutes\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Admin] Update Service",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"basePrice\": 899,\n  \"isActive\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Admin] Delete Service",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/services/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "services",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<serviceId>"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bookings",
+          "item": [
+            {
+              "name": "Create Booking",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"serviceId\": \"<serviceId>\",\n  \"scheduledAt\": \"2026-07-01T10:00:00.000Z\",\n  \"address\": {\n    \"addressLine\": \"123 MG Road\",\n    \"city\": \"Bangalore\",\n    \"pincode\": \"560001\"\n  },\n  \"paymentMethod\": \"upi\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get My Bookings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings?page=1&limit=10",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Booking by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Mark En Route",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/en-route",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "en-route"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Mark Arrived",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/arrived",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "arrived"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Cancel Booking",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/cancel",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "cancel"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Schedule conflict\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Request Agent Change",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/request-agent-change",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "request-agent-change"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Agent not responsive\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Send Start OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/send-start-otp",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "send-start-otp"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Verify Start OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/verify-start",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "verify-start"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"otp\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Send End OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/send-end-otp",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "send-end-otp"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Verify End OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/verify-end",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "verify-end"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"otp\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Upload Job Photo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/bookings/:id/photos",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "bookings",
+                    ":id",
+                    "photos"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "photo",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agents",
+          "item": [
+            {
+              "name": "Get Available Agents",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/available?city=Bangalore",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "available"
+                  ],
+                  "query": [
+                    {
+                      "key": "city",
+                      "value": "Bangalore"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get Jobs",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/jobs",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "jobs"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get My Jobs",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/my-jobs?page=1&limit=10",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "my-jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get Profile",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/profile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "profile"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Update Profile",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/profile",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ravi Kumar\",\n  \"bio\": \"5 years experience in home services\",\n  \"skills\": [\"<categoryId>\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Update Location",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/location",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "location"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lat\": 12.9716,\n  \"lng\": 77.5946\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Update Status",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/status",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "status"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"online\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get Earnings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/earnings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "earnings"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Export Earnings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/earnings/export",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "earnings",
+                    "export"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get Leaves",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/leave",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "leave"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Apply Leave",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/leave",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "leave"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-07-04T00:00:00.000Z\",\n  \"reason\": \"Personal work\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[Agent] Cancel Leave",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/leave/:leaveId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "leave",
+                    ":leaveId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "leaveId",
+                      "value": "<leaveId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Agent] Get Complaints",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/agents/complaints",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "agents",
+                    "complaints"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payments",
+          "item": [
+            {
+              "name": "Create Payment Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/payments/create-order",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "payments",
+                    "create-order"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bookingId\": \"<bookingId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verify Payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/payments/verify",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "payments",
+                    "verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"razorpay_order_id\": \"order_xxx\",\n  \"razorpay_payment_id\": \"pay_xxx\",\n  \"razorpay_signature\": \"<signature>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Payment by Booking",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/payments/booking/:bookingId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "payments",
+                    "booking",
+                    ":bookingId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "bookingId",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Webhook (Razorpay)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "x-razorpay-signature",
+                    "value": "<signature>"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/payments/webhook",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "payments",
+                    "webhook"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Coupons",
+          "item": [
+            {
+              "name": "Get Active Coupons",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/coupons",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "coupons"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Flash Deals",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/coupons/flash",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "coupons",
+                    "flash"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Validate Coupon",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/coupons/validate",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "coupons",
+                    "validate"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"SAVE100\",\n  \"serviceId\": \"<serviceId>\",\n  \"orderAmount\": 999\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notifications",
+          "item": [
+            {
+              "name": "Subscribe (Push)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/notifications/subscribe",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "notifications",
+                    "subscribe"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fcmToken\": \"<fcm_device_token>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Unsubscribe (Push)",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/notifications/subscribe",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "notifications",
+                    "subscribe"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reviews",
+          "item": [
+            {
+              "name": "Get Reviews",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/reviews?page=1&limit=10",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "reviews"
+                  ],
+                  "query": [
+                    {
+                      "key": "serviceId",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Submit Review",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/reviews",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "reviews"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bookingId\": \"<bookingId>\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload",
+          "item": [
+            {
+              "name": "Upload File",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/upload",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "upload"
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disputes",
+          "item": [
+            {
+              "name": "Create Dispute",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bookingId\": \"<bookingId>\",\n  \"reason\": \"Service not completed properly\",\n  \"description\": \"Agent left without finishing the work.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get My Disputes",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Dispute by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<disputeId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Resolve Dispute",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes/:id/resolve",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes",
+                    ":id",
+                    "resolve"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<disputeId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"resolution\": \"Refund issued to customer\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recommendations",
+          "item": [
+            {
+              "name": "Get Recommendations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/recommendations",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "recommendations"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subscriptions",
+          "item": [
+            {
+              "name": "Get Plans",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/subscriptions/plans",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "subscriptions",
+                    "plans"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Subscribe to Plan",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/subscriptions",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "subscriptions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"planId\": \"<planId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get My Subscription",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/subscriptions/mine",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "subscriptions",
+                    "mine"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Cancel Subscription",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/subscriptions/mine/cancel",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "subscriptions",
+                    "mine",
+                    "cancel"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Corporate",
+          "item": [
+            {
+              "name": "Register Corporate Account",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/register",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"companyName\": \"Acme Corp\",\n  \"gstNumber\": \"29AAACR5055K1Z5\",\n  \"billingAddress\": \"123 Business Park, Bangalore\",\n  \"invoiceEmail\": \"billing@acme.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Create Corporate Booking",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"serviceId\": \"<serviceId>\",\n  \"scheduledAt\": \"2026-07-05T09:00:00.000Z\",\n  \"address\": {\n    \"addressLine\": \"123 Business Park\",\n    \"city\": \"Bangalore\",\n    \"pincode\": \"560001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get My Corporate Bookings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Corporate Booking by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Get All Corporate Bookings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/admin/all",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    "admin",
+                    "all"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Get Pending Registrations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/admin/pending-registrations",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    "admin",
+                    "pending-registrations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Approve Corporate Account",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/admin/approve/:userId",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    "admin",
+                    "approve",
+                    ":userId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "userId",
+                      "value": "<userId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[Admin] Update Corporate Booking Status",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/corporate-bookings/admin/:id/status",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "corporate-bookings",
+                    "admin",
+                    ":id",
+                    "status"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"confirmed\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "description": "All routes require role=admin in the JWT.",
+          "item": [
+            {
+              "name": "Get Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/dashboard",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "dashboard"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Booking Heatmap",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/bookings/heatmap",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "bookings",
+                    "heatmap"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Bookings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/bookings?page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "bookings"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "status",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Booking",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/bookings/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "bookings",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"confirmed\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Assign Agent to Booking",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/bookings/:id/assign-agent",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "bookings",
+                    ":id",
+                    "assign-agent"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<bookingId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"agentId\": \"<agentId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get Agent Change Requests",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agent-change-requests",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agent-change-requests"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Review Agent Change Request",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agent-change-requests/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agent-change-requests",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<requestId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"approve\",\n  \"newAgentId\": \"<agentId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get All Customers",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/customers?page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "customers"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Customer by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/customers/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "customers",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<customerId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Customer Active",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/customers/:id/toggle-active",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "customers",
+                    ":id",
+                    "toggle-active"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<customerId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Agent Locations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/locations",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    "locations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Agents",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents?page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Agent by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<agentId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Agent",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ravi Kumar\",\n  \"phone\": \"+919591972808\",\n  \"city\": \"Bangalore\",\n  \"gender\": \"male\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update Agent",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<agentId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"city\": \"Mysore\",\n  \"zoneId\": \"<zoneId>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Approve Agent",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/:id/approve",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    ":id",
+                    "approve"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<agentId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Agent Active",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/:id/toggle-active",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    ":id",
+                    "toggle-active"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<agentId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Background Verify",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/agents/:id/background-verify",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "agents",
+                    ":id",
+                    "background-verify"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<agentId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Audit Logs",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/audit?page=1&limit=50",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "audit"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Revenue Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/analytics/revenue?from=2026-01-01&to=2026-06-30",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "analytics",
+                    "revenue"
+                  ],
+                  "query": [
+                    {
+                      "key": "from",
+                      "value": "2026-01-01"
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-06-30"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Booking Stats",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/analytics/bookings?from=2026-01-01&to=2026-06-30",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "analytics",
+                    "bookings"
+                  ],
+                  "query": [
+                    {
+                      "key": "from",
+                      "value": "2026-01-01"
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-06-30"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Coupons",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/coupons",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "coupons"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Coupon",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/coupons",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "coupons"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"SAVE100\",\n  \"type\": \"flat\",\n  \"discount\": 100,\n  \"minOrderValue\": 500,\n  \"expiresAt\": \"2026-12-31T23:59:59.000Z\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update Coupon",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/coupons/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "coupons",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<couponId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"discount\": 150\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Toggle Coupon",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/coupons/:id/toggle",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "coupons",
+                    ":id",
+                    "toggle"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<couponId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Zones",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/zones",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "zones"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Zone",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/zones",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "zones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Zone A\",\n  \"city\": \"Bangalore\",\n  \"pincodes\": [\"560001\", \"560002\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update Zone",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/zones/:id",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "zones",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<zoneId>"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pincodes\": [\"560001\", \"560002\", \"560003\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Toggle Zone",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/zones/:id/toggle",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "zones",
+                    ":id",
+                    "toggle"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "<zoneId>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Payments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/payments?page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "payments"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Subscriptions",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/subscriptions",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "subscriptions"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  api:
+    build: .
+    container_name: realistan-one-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+      - "${SOCKET_PORT:-3002}:3002"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - realistan-net
+
+  mongo:
+    image: mongo:7
+    container_name: realistan-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - realistan-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: realistan-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - realistan-net
+
+volumes:
+  mongo-data:
+
+networks:
+  realistan-net:
+    driver: bridge

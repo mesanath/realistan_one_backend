@@ -1,0 +1,25 @@
+title = "Realistan Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[rules.allowlist]]
+description = "Ignore CI test secrets"
+regexes = [
+  "ci_test_",
+  "change_this_",
+  "test_secret",
+  "test_admin_secret",
+]
+
+[[rules.allowlist]]
+description = "Ignore seed script default password (not a real credential)"
+paths = ["scripts/seed-superusers.js"]
+
+[[rules.allowlist]]
+description = "Ignore .env.example (placeholder values only)"
+paths = [".env.example"]
+
+[[rules.allowlist]]
+description = "Ignore test setup files"
+paths = ["src/tests/", "modules/.*/tests/"]
