@@ -1,4 +1,4 @@
-const { body, param, query, validationResult } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
 
 // Sends a 400 with all field errors if any validation failed.
 // Use as the last middleware in a validator chain array.

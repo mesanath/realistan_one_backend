@@ -107,7 +107,7 @@ describe('POST /api/v1/realestate-admin/properties', () => {
     });
 
     it('returns 400 when title is missing', async () => {
-        const { title, ...withoutTitle } = validProperty;
+        const { title: _title, ...withoutTitle } = validProperty;
         const res = await request(app)
             .post('/api/v1/realestate-admin/properties')
             .set('Authorization', `Bearer ${TOKEN}`)

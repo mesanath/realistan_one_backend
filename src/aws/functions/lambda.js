@@ -21,7 +21,7 @@ const lambdaAddPerm = async (addPermissionParams) => {
 
 const lambdaRemovePerm = async (prams) => {
     try {
-      const data = await lambdaObj.send(new RemovePermissionCommand(prams));
+      await lambdaObj.send(new RemovePermissionCommand(prams));
       return true;
     } catch (err) {
       console.error("Error", err);

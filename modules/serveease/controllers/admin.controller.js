@@ -1,8 +1,6 @@
 const User = require('../models/User');
 const Agent = require('../models/Agent');
 const Booking = require('../models/Booking');
-const Service = require('../models/Service');
-const Category = require('../models/Category');
 const Review = require('../models/Review');
 const AuditLog = require('../models/AuditLog');
 const AgentChangeRequest = require('../models/AgentChangeRequest');
@@ -85,7 +83,7 @@ exports.getDashboard = async (req, res) => {
 // GET /api/v1/admin/bookings
 exports.getAllBookings = async (req, res) => {
   try {
-    const { status, city, page = 1, limit = 20, from, to, search } = req.query;
+    const { status, city, page = 1, limit = 20, from, to, search: _search } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (city) filter['address.city'] = new RegExp(city, 'i');
@@ -137,7 +135,7 @@ exports.updateBooking = async (req, res) => {
 // GET /api/v1/admin/customers
 exports.getCustomers = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, city } = req.query;
+    const { page = 1, limit = 20, search, city: _city } = req.query;
     const filter = { isAdmin: { $ne: true } };
     if (search) filter.$or = [
       { name: new RegExp(search, 'i') },

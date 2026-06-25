@@ -1,5 +1,4 @@
 const { getBundleSuggestions } = require('../services/bundle.service');
-const AppError = require('../utils/AppError');
 
 /**
  * GET /api/v1/services/:id/bundles

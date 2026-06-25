@@ -35,7 +35,6 @@ const seed = async () => {
 
   // ─── 2. Seed Services ──────────────────────────────────
   console.log('\n🛎️  Seeding services...');
-  let serviceCount = 0;
   for (const [slug, services] of Object.entries(servicesByCategorySlug)) {
     const categoryId = categoryMap[slug];
     if (!categoryId) { console.log(`   ⚠️  Category not found: ${slug}`); continue; }
@@ -43,7 +42,6 @@ const seed = async () => {
       const existing = await Service.findOne({ slug: svc.slug });
       if (existing) { console.log(`   ↩  Skipped (exists): ${svc.name}`); continue; }
       await Service.create({ ...svc, categoryId });
-      serviceCount++;
       console.log(`   ✔  Created: ${svc.name} (${slug})`);
     }
     await Category.findByIdAndUpdate(categoryId, { serviceCount: await Service.countDocuments({ categoryId, isActive: true }) });

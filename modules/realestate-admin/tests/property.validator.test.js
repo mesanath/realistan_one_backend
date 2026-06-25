@@ -19,7 +19,7 @@ describe('addPropertySchema', () => {
     });
 
     it('fails when title is missing', () => {
-        const { title, ...rest } = validProperty;
+        const { title: _title, ...rest } = validProperty;
         const result = addPropertySchema.safeParse(rest);
         expect(result.success).toBe(false);
         expect(result.error.issues.some(i => i.path[0] === 'title')).toBe(true);

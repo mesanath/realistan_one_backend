@@ -4,7 +4,6 @@ const Agent = require('../models/Agent');
 const redis = require('../config/redis');
 const { generateOtp } = require('../utils/generateOtp');
 const { sendOtp: dispatchOtpSms, parseMobile, maskMobile } = require('../utils/otp');
-const AuditLog = require('../models/AuditLog');
 const logger = require('../utils/logger');
 
 const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_SECONDS || '600');
@@ -21,7 +20,6 @@ exports.sendOtp = async (req, res) => {
   try {
     // Accept `mobile` (unified canonical) or `phone` (legacy direct calls)
     const rawPhone = req.body.mobile || req.body.phone;
-    const { role = 'customer' } = req.body;
     if (!rawPhone) return res.status(400).json({ success: false, message: 'mobile number required' });
 
     let phone;

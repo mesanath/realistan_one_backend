@@ -1,5 +1,5 @@
 const redis = require('../config/redis');
-const { generateOtp, hashOtp, verifyOtp } = require('../utils/generateOtp');
+const { generateOtp, hashOtp } = require('../utils/generateOtp');
 const { sendOtp: dispatchOtpSms, maskMobile } = require('../utils/otp');
 const AuditLog = require('../models/AuditLog');
 const logger = require('../utils/logger');

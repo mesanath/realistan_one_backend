@@ -3,7 +3,7 @@ const ctrl = require('../controllers/admin.controller');
 const subscriptionCtrl = require('../controllers/subscription.controller');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { adminMutationLimit } = require('../../../src/middleware/rateLimit.middleware');
-const { createServiceRules, updateServiceRules, createAgentRules, updateAgentRules } = require('../validators/validators');
+const { createAgentRules, updateAgentRules } = require('../validators/validators');
 
 router.use(authenticate, authorize('admin'));
 

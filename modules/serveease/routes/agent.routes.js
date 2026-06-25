@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const Agent = require('../models/Agent');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
-const Category = require('../models/Category');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { agentActionLimit } = require('../../../src/middleware/rateLimit.middleware');
 const { updateAgentProfileRules, applyLeaveRules } = require('../validators/validators');

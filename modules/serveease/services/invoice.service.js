@@ -1,7 +1,6 @@
 const PDFDocument = require('pdfkit');
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const path = require('path');
 const logger = require('../utils/logger');
 
 const S3_BUCKET = process.env.AWS_S3_BUCKET;
