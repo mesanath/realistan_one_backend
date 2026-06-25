@@ -3,5 +3,6 @@
     "allow": [
       "Bash(*)"
     ]
-  }
+  },
+  "customInstructions": "MANDATORY RULES FOR THIS PROJECT — enforce on every change without exception:\n\n1. ZERO ESLINT ISSUES: Run `npm run lint` before finishing any task. Fix every error and warning it reports. Never introduce unused imports, unused variables, useless catch blocks, or any other ESLint violation. Prefix intentionally unused destructured vars or params with _ (e.g. _title, _next, _city).\n\n2. NEVER BREAK EXISTING FUNCTIONALITY: Route paths, HTTP methods, request/response shapes, and business logic must stay identical unless the task explicitly requires changing them. Before touching any function, read the entire function. Do not remove exports, fields, or params that are used elsewhere.\n\n3. IMPORT HYGIENE: Only import what the file actually uses. Remove any require() whose symbol is never referenced in the file.\n\n4. NEW ENDPOINTS: Every new API endpoint must also be added to api_docs/api_docs.json (Postman collection) with proper host/path arrays in the URL object.\n\n5. SELF-CHECK BEFORE DONE: After every implementation mentally verify — (a) npm run lint passes clean, (b) existing API contracts are intact, (c) no hardcoded secrets were introduced."
 }
