@@ -36,6 +36,28 @@ All belong under `/api/v1/realestate-admin/`.
 - [ ] `GET/POST /api/v1/realestate-admin/pincodes` — no pincodes module
 - [ ] `GET/POST/DELETE /api/v1/realestate-admin/banners/images` — no image-banners module
 
+## ServeEase — Pending Backend Tasks (identified 2026-06-25)
+
+### Critical — Model Bug
+
+- [ ] **BE-P4b** — Fix Dispute model unique index to allow one dispute per booking per role  
+  Current index: `{ booking: 1 }` unique — breaks when BOTH customer and agent raise a dispute on the same booking (duplicate key error).  
+  Fix: replace with compound unique `disputeSchema.index({ booking: 1, raisedByRole: 1 }, { unique: true })` and drop the old index from MongoDB.
+
+### Done
+
+- [x] **BE-P4** — Agent dispute raising: route (`authorize('customer','agent')`) + controller logic + model fields (`agent`, `raisedByRole`, new reason enums) — ✅ Done
+- [x] **BE-P6** — Push notifications on `markEnRoute` / `markArrived` — ✅ Done
+- [x] **BE-P7** — Push notification when admin replies to a dispute — ✅ Done
+- [x] **BE-P9** — Agent auto-joins `booking_${id}` socket room on connect (socket/index.js) — ✅ Done
+
+### Low Priority
+
+- [ ] **BE-P8** — Verify `GET /api/v1/serveease/bookings/:id` returns full context for agent job detail  
+  Agent job detail page needs: service name, customer address, OTP phase, agent-visible status. Confirm the existing endpoint populates `serviceId` (name, emoji, durationMinutes) and `address`.
+
+---
+
 ## Backlog
 - [ ] Add unified API documentation
 - [ ] Set up CI/CD pipeline

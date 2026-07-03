@@ -2,7 +2,7 @@
 const router = require('express').Router();
 const { authenticate, requireAccess } = require('../../../src/middleware/admin-auth.middleware');
 const validate = require('../../../src/middleware/validate.middleware');
-const { getAdminList, addAdminUsers, editAdminUsers } = require('../controllers/admin.controller');
+const { getAdminList, addAdminUsers, editAdminUsers, deleteAdminUser } = require('../controllers/admin.controller');
 const { getAdminListSchema, addAdminUserSchema, editAdminUserSchema, userIDParamSchema } = require('../validators/admin.validator');
 
 router.get(
@@ -28,6 +28,14 @@ router.put(
     validate(userIDParamSchema, 'params'),
     validate(editAdminUserSchema),
     editAdminUsers
+);
+
+router.delete(
+    '/users/:userID',
+    authenticate,
+    requireAccess('User', 'write'),
+    validate(userIDParamSchema, 'params'),
+    deleteAdminUser
 );
 
 module.exports = router;

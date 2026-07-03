@@ -3478,6 +3478,45 @@
               }
             },
             {
+              "name": "[Agent] Raise Dispute",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_agent_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"reason\": \"customer_abusive\",\n  \"description\": \"Customer was verbally abusive during the service.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Agent raises a dispute about a customer on one of their active or completed bookings. raisedByRole is set to 'agent' automatically. Supported reasons: customer_abusive, customer_no_show, other."
+              },
+              "response": []
+            },
+            {
               "name": "Get My Disputes",
               "request": {
                 "method": "GET",
@@ -3531,6 +3570,53 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "[Admin] Reply to Dispute",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/disputes/:id/reply",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "disputes",
+                    ":id",
+                    "reply"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": ""
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"adminReply\": \"We have reviewed your dispute and are looking into it.\",\n  \"markUnderReview\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Admin sends a customer-visible reply to a dispute. Optionally moves status to under_review."
+              },
+              "response": []
             },
             {
               "name": "[Admin] Resolve Dispute",
@@ -5066,6 +5152,356 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "[Admin] List Fraud Users",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/fraud-users?isFlagged=true&isBlocked=true&page=1&limit=20",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "fraud-users"
+                  ],
+                  "query": [
+                    {
+                      "key": "isFlagged",
+                      "value": "true"
+                    },
+                    {
+                      "key": "isBlocked",
+                      "value": "true"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                },
+                "description": "Returns fraud-flagged users. Filter by isFlagged and/or isBlocked."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Get Fraud User by Phone",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/fraud-users/:phone",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "fraud-users",
+                    ":phone"
+                  ],
+                  "variable": [
+                    {
+                      "key": "phone",
+                      "value": "+919876543210"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Unblock Fraud User",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/fraud-users/:phone/unblock",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "fraud-users",
+                    ":phone",
+                    "unblock"
+                  ],
+                  "variable": [
+                    {
+                      "key": "phone",
+                      "value": "+919876543210"
+                    }
+                  ]
+                },
+                "description": "Manually lifts a block on a flagged phone number."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Flag / Block User",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/fraud-users/:phone/flag",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "fraud-users",
+                    ":phone",
+                    "flag"
+                  ],
+                  "variable": [
+                    {
+                      "key": "phone",
+                      "value": "+919876543210"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"flagReason\": \"manual_flag\",\n  \"blockMinutes\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Manually flags and blocks a phone. blockMinutes defaults to null (permanent until unblocked)."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Get All Settings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/settings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "settings"
+                  ]
+                },
+                "description": "Returns all settings sorted: system keys first, then custom keys A-Z. Each item includes key, value, dataType, description, isSystem."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Create Setting (Add New Key)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/settings",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "settings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"MY_CUSTOM_KEY\",\n  \"value\": \"hello\",\n  \"dataType\": \"string\",\n  \"description\": \"A custom setting\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Add a new custom setting key. dataType: string | number | boolean | json. Key must match ^[A-Z0-9_]+$."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Update Setting",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/settings/:key",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "settings",
+                    ":key"
+                  ],
+                  "variable": [
+                    {
+                      "key": "key",
+                      "value": "OTP_LIMIT"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"value\": 5,\n  \"description\": \"Max OTP requests per phone per window\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Update value and/or description for any setting key. System keys cannot change their dataType."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Delete Custom Setting",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/settings/:key",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "settings",
+                    ":key"
+                  ],
+                  "variable": [
+                    {
+                      "key": "key",
+                      "value": "MY_CUSTOM_KEY"
+                    }
+                  ]
+                },
+                "description": "Delete a custom (non-system) setting. Returns 400 if key is a system setting."
+              },
+              "response": []
+            },
+            {
+              "name": "[Admin] Bulk Save Settings (Dashboard Save-All)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/admin/settings/bulk",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "admin",
+                    "settings",
+                    "bulk"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"settings\": [\n    {\n      \"key\": \"OTP_LIMIT\",\n      \"value\": 5\n    },\n    {\n      \"key\": \"IP_LIMIT\",\n      \"value\": 50\n    },\n    {\n      \"key\": \"OTP_WINDOW_MINUTES\",\n      \"value\": 5\n    },\n    {\n      \"key\": \"OTP_BLOCK_DURATION_MINUTES\",\n      \"value\": 60\n    },\n    {\n      \"key\": \"FRAUD_AUTO_BLOCK\",\n      \"value\": true\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Save multiple settings at once \u2014 used by the admin dashboard 'Save All' button. Only updates existing keys; does not create new ones."
+              },
+              "response": []
             }
           ]
         }

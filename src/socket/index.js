@@ -36,12 +36,28 @@ const initSocket = (httpServer) => {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const { id: userId, role } = socket.user;
     logger.info(`Socket connected: ${role} ${userId}`);
 
     // Join personal room
     socket.join(`${role}_${userId}`);
+
+    // Agent: auto-join active booking room so they receive booking:status events
+    if (role === 'agent') {
+      try {
+        const activeBooking = await Booking.findOne({
+          agentId: userId,
+          status: { $in: ['assigned', 'en_route', 'arrived', 'in_progress'] },
+        }).select('_id');
+        if (activeBooking) {
+          socket.join(`booking_${activeBooking._id}`);
+          logger.info(`Agent ${userId} auto-joined booking_${activeBooking._id}`);
+        }
+      } catch (err) {
+        logger.error(`[Socket] Agent booking room auto-join failed: ${err.message}`);
+      }
+    }
 
     // ─── Realestate: join owner room ──────────────────────
     socket.on('realestate:join_room', () => {

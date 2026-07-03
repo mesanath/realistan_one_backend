@@ -4,14 +4,17 @@ const { authenticate, authorize } = require('../../../src/middleware/serveease-a
 
 router.use(authenticate);
 
-// Customer raises a dispute
-router.post('/', authorize('customer'), ctrl.createDispute);
+// Customer or agent raises a dispute
+router.post('/', authorize('customer', 'agent'), ctrl.createDispute);
 
-// List disputes — customer sees their own; admin sees all
-router.get('/', authorize('customer', 'admin'), ctrl.getDisputes);
+// List disputes — customer/agent see their own; admin sees all
+router.get('/', authorize('customer', 'agent', 'admin'), ctrl.getDisputes);
 
-// Single dispute — customer sees own; admin sees any
-router.get('/:id', authorize('customer', 'admin'), ctrl.getDisputeById);
+// Single dispute — customer/agent see own; admin sees any
+router.get('/:id', authorize('customer', 'agent', 'admin'), ctrl.getDisputeById);
+
+// Admin sends a customer-visible reply (without resolving)
+router.patch('/:id/reply', authorize('admin'), ctrl.replyToDispute);
 
 // Admin resolves a dispute
 router.patch('/:id/resolve', authorize('admin'), ctrl.resolveDispute);

@@ -154,7 +154,7 @@ exports.createBooking = async (req, res) => {
 exports.getBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
-      .populate('serviceId', 'name images durationMinutes')
+      .populate('serviceId', 'name images durationMinutes emoji')
       .populate('agentId', 'name profileImage rating phone');
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
     res.json({ success: true, data: booking });
@@ -189,7 +189,10 @@ exports.markEnRoute = async (req, res) => {
     if (!booking.agentId || booking.agentId.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Forbidden — you are not the assigned agent' });
     }
-    if (booking.status !== 'assigned') {
+    // Idempotent: already en_route → return success without re-writing
+    if (booking.status === 'en_route') return res.json({ success: true, status: 'en_route' });
+
+    if (!['assigned', 'confirmed'].includes(booking.status)) {
       return res.status(400).json({ success: false, message: `Cannot mark en-route from status: ${booking.status}` });
     }
 
@@ -197,9 +200,14 @@ exports.markEnRoute = async (req, res) => {
 
     const io = req.app.get('io');
     io?.to(`booking_${booking._id}`).emit('booking:status', { bookingId: booking._id, status: 'en_route' });
-    await AuditLog.create({ type: 'status_changed', bookingId: booking._id, userId: req.user.id, role: 'agent', meta: { status: 'en_route' } });
+    AuditLog.create({ type: 'agent_status_change', bookingId: booking._id, userId: req.user.id, role: 'agent', meta: { status: 'en_route' } }).catch(() => {});
+    notificationService.sendPushNotification(
+      booking.customerId.toString(),
+      { title: 'Agent is on the way', body: 'Your agent is heading to your location.', url: `/bookings/${booking._id}` },
+      'customer',
+    ).catch(() => {});
 
-    res.json({ success: true, message: 'Status updated to en_route' });
+    res.json({ success: true, status: 'en_route' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -214,7 +222,11 @@ exports.markArrived = async (req, res) => {
     if (!booking.agentId || booking.agentId.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Forbidden — you are not the assigned agent' });
     }
-    if (booking.status !== 'en_route') {
+    // Idempotent: already arrived → return success without re-writing
+    if (booking.status === 'arrived') return res.json({ success: true, status: 'arrived' });
+
+    // Accept any pre-arrived status so agents can skip steps if needed
+    if (!['assigned', 'confirmed', 'en_route'].includes(booking.status)) {
       return res.status(400).json({ success: false, message: `Cannot mark arrived from status: ${booking.status}` });
     }
 
@@ -222,9 +234,14 @@ exports.markArrived = async (req, res) => {
 
     const io = req.app.get('io');
     io?.to(`booking_${booking._id}`).emit('booking:status', { bookingId: booking._id, status: 'arrived' });
-    await AuditLog.create({ type: 'status_changed', bookingId: booking._id, userId: req.user.id, role: 'agent', meta: { status: 'arrived' } });
+    AuditLog.create({ type: 'agent_status_change', bookingId: booking._id, userId: req.user.id, role: 'agent', meta: { status: 'arrived' } }).catch(() => {});
+    notificationService.sendPushNotification(
+      booking.customerId.toString(),
+      { title: 'Agent has arrived', body: 'Your agent is at your location.', url: `/bookings/${booking._id}` },
+      'customer',
+    ).catch(() => {});
 
-    res.json({ success: true, message: 'Status updated to arrived' });
+    res.json({ success: true, status: 'arrived' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -270,6 +287,11 @@ exports.verifyStartOtp = async (req, res) => {
     const io = req.app.get('io');
     io?.to(`booking_${booking._id}`).emit('booking:started', { bookingId: booking._id, startedAt: new Date() });
     await AuditLog.create({ type: 'service_started', bookingId: booking._id, userId: req.user.id, role: 'agent' });
+    notificationService.sendPushNotification(
+      booking.customerId.toString(),
+      { title: 'Service started', body: 'Your service is now in progress.', url: `/bookings/${booking._id}` },
+      'customer',
+    ).catch(() => {});
 
     res.json({ success: true, message: 'Service started' });
   } catch (err) {

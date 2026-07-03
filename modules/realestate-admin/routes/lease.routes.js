@@ -2,47 +2,47 @@
 const router = require('express').Router();
 const { authenticate, requireAccess } = require('../../../src/middleware/admin-auth.middleware');
 const validate = require('../../../src/middleware/validate.middleware');
-const { getPropetiesList, getPropetiesDetails, addProperty, editProperty, deleteProperty } = require('../controllers/property.controller');
-const { addPropertySchema, editPropertySchema, propertyIDParamSchema } = require('../validators/property.validator');
+const { getLeaseList, getLeaseDetails, addLease, editLease, deleteLease } = require('../controllers/lease.controller');
+const { addLeaseSchema, editLeaseSchema, leaseIDParamSchema } = require('../validators/lease.validator');
 
 router.get(
     '/',
     authenticate,
     requireAccess('User', 'read'),
-    getPropetiesList
+    getLeaseList
 );
 
 router.get(
-    '/:propertyID',
+    '/:leaseID',
     authenticate,
     requireAccess('User', 'read'),
-    validate(propertyIDParamSchema, 'params'),
-    getPropetiesDetails
+    validate(leaseIDParamSchema, 'params'),
+    getLeaseDetails
 );
 
 router.post(
     '/',
     authenticate,
     requireAccess('Articles', 'write'),
-    validate(addPropertySchema),
-    addProperty
+    validate(addLeaseSchema),
+    addLease
 );
 
 router.put(
-    '/:propertyID',
+    '/:leaseID',
     authenticate,
     requireAccess('Articles', 'write'),
-    validate(propertyIDParamSchema, 'params'),
-    validate(editPropertySchema),
-    editProperty
+    validate(leaseIDParamSchema, 'params'),
+    validate(editLeaseSchema),
+    editLease
 );
 
 router.delete(
-    '/:propertyID',
+    '/:leaseID',
     authenticate,
     requireAccess('Articles', 'write'),
-    validate(propertyIDParamSchema, 'params'),
-    deleteProperty
+    validate(leaseIDParamSchema, 'params'),
+    deleteLease
 );
 
 module.exports = router;

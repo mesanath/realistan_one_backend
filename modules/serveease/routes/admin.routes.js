@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/admin.controller');
 const subscriptionCtrl = require('../controllers/subscription.controller');
+const fraudCtrl = require('../controllers/admin.fraud.controller');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { adminMutationLimit } = require('../../../src/middleware/rateLimit.middleware');
 const { createAgentRules, updateAgentRules } = require('../validators/validators');
@@ -57,5 +58,18 @@ router.get('/payments', ctrl.getAdminPayments);
 
 // Subscriptions
 router.get('/subscriptions', subscriptionCtrl.getAdminSubscriptions);
+
+// Fraud management
+router.get('/fraud-users', fraudCtrl.getFraudUsers);
+router.get('/fraud-users/:phone', fraudCtrl.getFraudUserByPhone);
+router.patch('/fraud-users/:phone/unblock', adminMutationLimit, fraudCtrl.unblockFraudUser);
+router.patch('/fraud-users/:phone/flag', adminMutationLimit, fraudCtrl.flagFraudUser);
+
+// App settings — full CRUD + bulk save for dashboard
+router.get('/settings', fraudCtrl.getSettings);
+router.post('/settings/bulk', adminMutationLimit, fraudCtrl.bulkUpdateSettings);  // must be before /:key
+router.post('/settings', adminMutationLimit, fraudCtrl.createSetting);
+router.patch('/settings/:key', adminMutationLimit, fraudCtrl.updateSetting);
+router.delete('/settings/:key', adminMutationLimit, fraudCtrl.deleteSetting);
 
 module.exports = router;

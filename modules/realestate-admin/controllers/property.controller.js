@@ -65,3 +65,16 @@ exports.getPropetiesDetails = async (req, res, next) => {
         next(e);
     }
 };
+
+exports.deleteProperty = async (req, res, next) => {
+    try {
+        const { propertyID } = req.params;
+        const db = connectToDatabase();
+        const propertiesDB = db.collection('temp');
+        const result = await propertiesDB.deleteOne({ propertyID });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ success: false, message: 'Property not found' });
+        }
+        return res.json({ success: true, message: 'Property deleted successfully' });
+    } catch (e) { next(e); }
+};

@@ -75,3 +75,16 @@ exports.editAdminUsers = async (req, res, next) => {
         next(e);
     }
 };
+
+exports.deleteAdminUser = async (req, res, next) => {
+    try {
+        const { userID } = req.params;
+        const db = connectToDatabase();
+        const NewAdmin = db.collection('new_admin');
+        const result = await NewAdmin.deleteOne({ userID });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        return res.json({ success: true, message: 'User deleted successfully' });
+    } catch (e) { next(e); }
+};

@@ -23,10 +23,17 @@ const realestateArticleRoutes  = require('../modules/realestate/routes/article.r
 const realestateContactRoutes  = require('../modules/realestate/routes/contact.routes');
 
 // Realestate Admin (admin management panel)
-const adminAuthRoutes     = require('../modules/realestate-admin/routes/auth.routes');
-const adminAdminRoutes    = require('../modules/realestate-admin/routes/admin.routes');
-const adminPropertyRoutes = require('../modules/realestate-admin/routes/property.routes');
-const adminHomepageRoutes = require('../modules/realestate-admin/routes/homepage.routes');
+const adminAuthRoutes      = require('../modules/realestate-admin/routes/auth.routes');
+const adminAdminRoutes     = require('../modules/realestate-admin/routes/admin.routes');
+const adminPropertyRoutes  = require('../modules/realestate-admin/routes/property.routes');
+const adminHomepageRoutes  = require('../modules/realestate-admin/routes/homepage.routes');
+const adminArticlesRoutes  = require('../modules/realestate-admin/routes/articles.routes');
+const adminBannersRoutes   = require('../modules/realestate-admin/routes/banners.routes');
+const adminDashboardRoutes = require('../modules/realestate-admin/routes/dashboard.routes');
+const adminProfilesRoutes  = require('../modules/realestate-admin/routes/profiles.routes');
+const adminLeaseRoutes     = require('../modules/realestate-admin/routes/lease.routes');
+const adminLoansRoutes     = require('../modules/realestate-admin/routes/loans.routes');
+const adminPincodesRoutes  = require('../modules/realestate-admin/routes/pincodes.routes');
 
 // ServeEase (home services marketplace)
 const serveeaseAuthRoutes         = require('../modules/serveease/routes/auth.routes');
@@ -89,6 +96,13 @@ app.use('/api/v1/realestate-admin/auth',       adminAuthRoutes);
 app.use('/api/v1/realestate-admin/admin',      adminAdminRoutes);
 app.use('/api/v1/realestate-admin/properties', adminPropertyRoutes);
 app.use('/api/v1/realestate-admin/homepage',   adminHomepageRoutes);
+app.use('/api/v1/realestate-admin/articles',   adminArticlesRoutes);
+app.use('/api/v1/realestate-admin/banners',    adminBannersRoutes);
+app.use('/api/v1/realestate-admin/dashboard',  adminDashboardRoutes);
+app.use('/api/v1/realestate-admin/profiles',   adminProfilesRoutes);
+app.use('/api/v1/realestate-admin/lease',      adminLeaseRoutes);
+app.use('/api/v1/realestate-admin/loans',      adminLoansRoutes);
+app.use('/api/v1/realestate-admin/pincodes',   adminPincodesRoutes);
 
 // ─── Routes: ServeEase (/api/v1/serveease/) ───────────────────────────────────
 app.use('/api/v1/serveease/auth',              serveeaseAuthRoutes);

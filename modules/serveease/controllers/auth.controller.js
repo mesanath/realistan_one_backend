@@ -4,6 +4,7 @@ const Agent = require('../models/Agent');
 const redis = require('../config/redis');
 const { generateOtp } = require('../utils/generateOtp');
 const { sendOtp: dispatchOtpSms, parseMobile, maskMobile } = require('../utils/otp');
+const { checkAndRecord, checkIfBlocked } = require('../services/fraud.service');
 const logger = require('../utils/logger');
 
 const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_SECONDS || '600');
@@ -28,6 +29,24 @@ exports.sendOtp = async (req, res) => {
     } catch (e) {
       return res.status(400).json({ success: false, message: 'Invalid phone number format' });
     }
+
+    // ── Fraud gate: check block status first, then rate-limit window ──────────
+    const ip = (req.headers['x-forwarded-for']?.split(',')[0]?.trim()) || req.ip || 'unknown';
+
+    const blockCheck = await checkIfBlocked(phone);
+    if (blockCheck.blocked) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many OTP requests. Your number has been temporarily blocked.',
+        blockedUntil: blockCheck.blockedUntil,
+      });
+    }
+
+    const fraudCheck = await checkAndRecord(phone, ip);
+    if (!fraudCheck.allowed) {
+      return res.status(429).json({ success: false, message: fraudCheck.message });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const otp = generateOtp(6);
     await redis.set(`auth_otp:${phone}`, otp, OTP_EXPIRY);

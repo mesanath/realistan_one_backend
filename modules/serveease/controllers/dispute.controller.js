@@ -3,12 +3,13 @@ const Booking = require('../models/Booking');
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
+const notificationService = require('../services/notification.service');
 
-// POST /api/v1/disputes — Customer raises a dispute
+// POST /api/v1/disputes — Customer or Agent raises a dispute
 exports.createDispute = async (req, res) => {
   try {
     const { bookingId, reason, description } = req.body;
-    const customerId = req.user.id;
+    const isAgent = req.user.role === 'agent';
 
     if (!bookingId) return res.status(400).json({ success: false, message: 'bookingId is required' });
     if (!reason) return res.status(400).json({ success: false, message: 'reason is required' });
@@ -16,36 +17,47 @@ exports.createDispute = async (req, res) => {
     const booking = await Booking.findById(bookingId);
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    // Only the booking's customer can raise a dispute
-    if (booking.customerId.toString() !== customerId) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (isAgent) {
+      // Agent can only raise disputes on their own assigned bookings
+      if (!booking.agentId || booking.agentId.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+      }
+      const activeStatuses = ['assigned', 'en_route', 'arrived', 'in_progress', 'completed'];
+      if (!activeStatuses.includes(booking.status)) {
+        return res.status(400).json({ success: false, message: 'Cannot raise a dispute at this booking stage' });
+      }
+    } else {
+      // Customer can only raise disputes on their own completed bookings
+      if (booking.customerId.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: 'Forbidden' });
+      }
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ success: false, message: 'Disputes can only be raised on completed bookings' });
+      }
     }
 
-    // Only allow disputes on completed bookings
-    if (booking.status !== 'completed') {
-      return res.status(400).json({ success: false, message: 'Disputes can only be raised on completed bookings' });
-    }
-
-    // One dispute per booking (enforced by unique index, but also check explicitly for a friendly message)
-    const existing = await Dispute.findOne({ booking: bookingId });
+    // One dispute per booking per role (agents and customers may each raise one)
+    const existing = await Dispute.findOne({ booking: bookingId, raisedByRole: isAgent ? 'agent' : 'customer' });
     if (existing) {
       return res.status(409).json({ success: false, message: 'A dispute has already been raised for this booking' });
     }
 
     const dispute = await Dispute.create({
       booking: bookingId,
-      customer: customerId,
+      customer: booking.customerId,
+      agent: isAgent ? req.user.id : null,
+      raisedByRole: isAgent ? 'agent' : 'customer',
       reason,
       description: description ? description.slice(0, 500) : '',
     });
 
-    await AuditLog.create({
+    AuditLog.create({
       type: 'dispute_created',
       bookingId: booking._id,
-      userId: customerId,
-      role: 'customer',
-      meta: { disputeId: dispute._id, reason },
-    });
+      userId: req.user.id,
+      role: req.user.role,
+      meta: { disputeId: dispute._id, reason, raisedByRole: dispute.raisedByRole },
+    }).catch(() => {});
 
     res.status(201).json({ success: true, data: dispute });
   } catch (err) {
@@ -63,7 +75,13 @@ exports.getDisputes = async (req, res) => {
     const isAdmin = req.user.role === 'admin';
 
     const filter = {};
-    if (!isAdmin) filter.customer = req.user.id;
+    if (!isAdmin) {
+      if (req.user.role === 'agent') {
+        filter.agent = req.user.id;
+      } else {
+        filter.customer = req.user.id;
+      }
+    }
     if (status) filter.status = status;
     if (bookingId) filter.booking = bookingId;
 
@@ -98,10 +116,48 @@ exports.getDisputeById = async (req, res) => {
 
     if (!dispute) return res.status(404).json({ success: false, message: 'Dispute not found' });
 
-    // Customers can only view their own disputes
-    if (req.user.role !== 'admin' && dispute.customer._id.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+    // Customers/agents can only view disputes they raised
+    if (req.user.role !== 'admin') {
+      const isOwner =
+        (req.user.role === 'customer' && dispute.customer._id.toString() === req.user.id) ||
+        (req.user.role === 'agent' && dispute.agent?.toString() === req.user.id);
+      if (!isOwner) return res.status(403).json({ success: false, message: 'Forbidden' });
     }
+
+    res.json({ success: true, data: dispute });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PATCH /api/v1/disputes/:id/reply — Admin sends a customer-visible reply (without resolving)
+exports.replyToDispute = async (req, res) => {
+  try {
+    const { adminReply, markUnderReview } = req.body;
+
+    if (!adminReply || !adminReply.trim()) {
+      return res.status(400).json({ success: false, message: 'adminReply is required' });
+    }
+
+    const dispute = await Dispute.findById(req.params.id);
+    if (!dispute) return res.status(404).json({ success: false, message: 'Dispute not found' });
+
+    if (['resolved_refund', 'resolved_no_refund', 'closed'].includes(dispute.status)) {
+      return res.status(400).json({ success: false, message: 'Cannot reply to a resolved dispute' });
+    }
+
+    dispute.adminReply = adminReply.trim().slice(0, 1000);
+    if (markUnderReview && dispute.status === 'open') {
+      dispute.status = 'under_review';
+    }
+    await dispute.save();
+
+    // Fire-and-forget: notify customer of admin reply
+    notificationService.sendPushNotification(
+      dispute.customer.toString(),
+      { title: 'Update on your dispute', body: dispute.adminReply.slice(0, 80), url: `/disputes/${dispute._id}` },
+      'customer',
+    ).catch(() => {});
 
     res.json({ success: true, data: dispute });
   } catch (err) {
