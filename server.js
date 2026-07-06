@@ -1,5 +1,8 @@
 'use strict';
-require('dotenv').config();
+const dotenvConfig = process.env.DOTENV_CONFIG_PATH
+    ? { path: process.env.DOTENV_CONFIG_PATH, override: true }
+    : {};
+require('dotenv').config(dotenvConfig);
 
 const http = require('http');
 const app = require('./src/app');

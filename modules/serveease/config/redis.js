@@ -4,6 +4,12 @@ const logger = require('../../../src/utils/logger');
 let client = null;
 
 const connectRedis = async () => {
+  if (process.env.CHECK_REDIS !== 'true') {
+    logger.info('⚠️  Redis is disabled via CHECK_REDIS=false — using in-memory fallback');
+    client = null;
+    return;
+  }
+
   try {
     client = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
     client.on('error', (err) => logger.error(`Redis error: ${err.message}`));
