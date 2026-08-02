@@ -41,6 +41,10 @@ serviceSchema.index({ categoryId: 1, isActive: 1 });
 serviceSchema.index({ slug: 1 });
 serviceSchema.index({ isFeatured: 1, isPopular: 1 });
 serviceSchema.index({ tags: 1 });
+serviceSchema.index(
+  { name: 'text', shortDescription: 'text', description: 'text', tags: 'text' },
+  { weights: { name: 10, tags: 5, shortDescription: 2, description: 1 }, name: 'service_text_search' }
+);
 
 // Get price for a specific city (falls back to basePrice)
 serviceSchema.methods.getPriceForCity = function (city) {
