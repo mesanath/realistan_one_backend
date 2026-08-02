@@ -9,7 +9,10 @@
  *   npm run seed:superusers         # seeds without wiping
  *   npm run seed:superusers -- --clean   # drops existing super admins first
  */
-require('dotenv').config();
+const dotenvConfig = process.env.DOTENV_CONFIG_PATH
+    ? { path: process.env.DOTENV_CONFIG_PATH, override: true }
+    : {};
+require('dotenv').config(dotenvConfig);
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');

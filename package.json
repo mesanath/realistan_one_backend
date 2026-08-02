@@ -11,11 +11,11 @@
     "test": "NODE_ENV=test jest --runInBand --forceExit",
     "test:watch": "NODE_ENV=test jest --watch",
     "test:coverage": "NODE_ENV=test jest --coverage",
-    "seed": "node scripts/seed.js",
-    "seed:local": "NODE_ENV=local node scripts/seed.js",
-    "seed:clean": "node scripts/seed.js --clean",
-    "seed:superusers": "node scripts/seed-superusers.js",
-    "seed:superusers:clean": "node scripts/seed-superusers.js --clean",
+    "seed": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js",
+    "seed:local": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js",
+    "seed:clean": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js --clean",
+    "seed:superusers": "DOTENV_CONFIG_PATH=.env.development node scripts/seed-superusers.js",
+    "seed:superusers:clean": "DOTENV_CONFIG_PATH=.env.development node scripts/seed-superusers.js --clean",
     "lint": "eslint src/ modules/ --ext .js"
   },
   "dependencies": {

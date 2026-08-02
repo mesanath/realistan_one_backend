@@ -1,88 +1,84 @@
-const agents = [
-  // ── Bangalore ──────────────────────────────────────────
-  {
-    name: 'Priya Sharma', phone: '+919876543201', email: 'priya.sharma@serveease.dev',
-    gender: 'female', city: 'Bangalore', bio: '5+ years experience in beauty services. Certified beautician.',
-    rating: 4.8, ratingCount: 124, totalJobs: 312, status: 'online', isApproved: true,
-    currentLocation: { lat: 12.9716, lng: 77.5946, updatedAt: new Date() },
-    skills: ['salon-women', 'spa-massage'],
-  },
-  {
-    name: 'Kavitha R', phone: '+919876543202', email: 'kavitha@serveease.dev',
-    gender: 'female', city: 'Bangalore', bio: 'Expert in hair, skin & nail care.',
-    rating: 4.7, ratingCount: 89, totalJobs: 201, status: 'online', isApproved: true,
-    currentLocation: { lat: 12.9352, lng: 77.6245, updatedAt: new Date() },
-    skills: ['salon-women', 'salon-men'],
-  },
-  {
-    name: 'Ravi Kumar', phone: '+919876543203', email: 'ravi.kumar@serveease.dev',
-    gender: 'male', city: 'Bangalore', bio: 'Home cleaning specialist. Handled 300+ jobs.',
-    rating: 4.6, ratingCount: 78, totalJobs: 298, status: 'online', isApproved: true,
-    currentLocation: { lat: 12.9141, lng: 77.6101, updatedAt: new Date() },
-    skills: ['home-cleaning', 'kitchen-bathroom'],
-  },
-  {
-    name: 'Suresh P', phone: '+919876543204', email: 'suresh.p@serveease.dev',
-    gender: 'male', city: 'Bangalore', bio: 'Certified AC technician. 7 years field experience.',
-    rating: 4.9, ratingCount: 203, totalJobs: 456, status: 'online', isApproved: true,
-    currentLocation: { lat: 12.9562, lng: 77.7010, updatedAt: new Date() },
-    skills: ['ac-service', 'appliance-repair', 'electrical'],
-  },
-  {
-    name: 'Meena Devi', phone: '+919876543205', email: 'meena.devi@serveease.dev',
-    gender: 'female', city: 'Bangalore', bio: 'Trained massage therapist.',
-    rating: 4.7, ratingCount: 56, totalJobs: 134, status: 'offline', isApproved: true,
-    currentLocation: { lat: 12.9279, lng: 77.6271, updatedAt: new Date() },
-    skills: ['spa-massage'],
-  },
+const { agents: agentPhotos } = require('./image-assets.json');
 
-  // ── Mumbai ─────────────────────────────────────────────
-  {
-    name: 'Sneha Patil', phone: '+919876543206', email: 'sneha.patil@serveease.dev',
-    gender: 'female', city: 'Mumbai', bio: 'Bridal makeup & beauty expert, 6 years experience.',
-    rating: 4.9, ratingCount: 178, totalJobs: 390, status: 'online', isApproved: true,
-    currentLocation: { lat: 19.0760, lng: 72.8777, updatedAt: new Date() },
-    skills: ['salon-women'],
-  },
-  {
-    name: 'Rahul Singh', phone: '+919876543207', email: 'rahul.singh@serveease.dev',
-    gender: 'male', city: 'Mumbai', bio: 'AC & appliance repair expert.',
-    rating: 4.5, ratingCount: 92, totalJobs: 215, status: 'online', isApproved: true,
-    currentLocation: { lat: 19.0543, lng: 72.9101, updatedAt: new Date() },
-    skills: ['ac-service', 'appliance-repair', 'plumbing'],
-  },
-  {
-    name: 'Anita Joshi', phone: '+919876543208', email: 'anita.joshi@serveease.dev',
-    gender: 'female', city: 'Mumbai', bio: 'Cleaning & household help specialist.',
-    rating: 4.6, ratingCount: 67, totalJobs: 176, status: 'online', isApproved: true,
-    currentLocation: { lat: 19.0321, lng: 72.8560, updatedAt: new Date() },
-    skills: ['home-cleaning', 'laundry-daily'],
-  },
-
-  // ── Delhi ──────────────────────────────────────────────
-  {
-    name: 'Pooja Gupta', phone: '+919876543209', email: 'pooja.gupta@serveease.dev',
-    gender: 'female', city: 'Delhi', bio: 'Beauty & wellness professional.',
-    rating: 4.8, ratingCount: 145, totalJobs: 320, status: 'online', isApproved: true,
-    currentLocation: { lat: 28.6139, lng: 77.2090, updatedAt: new Date() },
-    skills: ['salon-women', 'spa-massage'],
-  },
-  {
-    name: 'Amit Verma', phone: '+919876543210', email: 'amit.verma@serveease.dev',
-    gender: 'male', city: 'Delhi', bio: 'Electrician & plumber. 10 years experience.',
-    rating: 4.7, ratingCount: 112, totalJobs: 289, status: 'online', isApproved: true,
-    currentLocation: { lat: 28.6272, lng: 77.2160, updatedAt: new Date() },
-    skills: ['electrical', 'plumbing', 'carpentry'],
-  },
-
-  // ── Pending approval (to demo admin flow) ─────────────
-  {
-    name: 'Kiran Rao', phone: '+919876543211', email: 'kiran.rao@serveease.dev',
-    gender: 'male', city: 'Hyderabad', bio: 'New to platform, pest control specialist.',
-    rating: 0, ratingCount: 0, totalJobs: 0, status: 'offline', isApproved: false,
-    currentLocation: { lat: 17.3850, lng: 78.4867, updatedAt: new Date() },
-    skills: ['pest-control'],
-  },
+const CITIES = [
+  { name: 'Bangalore', lat: 12.9716, lng: 77.5946 },
+  { name: 'Mumbai', lat: 19.0760, lng: 72.8777 },
+  { name: 'Delhi', lat: 28.6139, lng: 77.2090 },
+  { name: 'Hyderabad', lat: 17.3850, lng: 78.4867 },
+  { name: 'Chennai', lat: 13.0827, lng: 80.2707 },
+  { name: 'Pune', lat: 18.5204, lng: 73.8567 },
+  { name: 'Kolkata', lat: 22.5726, lng: 88.3639 },
 ];
+
+// Skills a given gender is more commonly certified for in this domain — kept loose, not exclusive.
+const FEMALE_LEANING = ['salon-women', 'spa-massage', 'home-cleaning', 'kitchen-bathroom', 'laundry-daily'];
+const MALE_LEANING = ['salon-men', 'ac-service', 'appliance-repair', 'plumbing', 'electrical', 'carpentry', 'pest-control', 'painting', 'car-care'];
+
+const BIO_TEMPLATES = {
+  'salon-women': 'Certified beautician specialising in hair, skin & bridal services.',
+  'salon-men': 'Professional barber with expertise in modern & classic grooming.',
+  'spa-massage': 'Trained massage therapist focused on relaxation & therapeutic care.',
+  'home-cleaning': 'Home cleaning specialist known for thorough, reliable work.',
+  'kitchen-bathroom': 'Deep-cleaning expert for kitchens, bathrooms & tough stains.',
+  'ac-service': 'Certified AC technician with years of field service experience.',
+  'appliance-repair': 'Skilled appliance repair technician for all major brands.',
+  plumbing: 'Experienced plumber handling repairs, fittings & installations.',
+  electrical: 'Licensed electrician for wiring, repairs & installations.',
+  carpentry: 'Skilled carpenter for furniture repair, assembly & woodwork.',
+  'pest-control': 'Trained pest control operator using safe, effective treatments.',
+  painting: 'Professional painter delivering clean, long-lasting finishes.',
+  'laundry-daily': 'Dependable daily-help professional for laundry & household chores.',
+  'car-care': 'Detailing specialist for car wash, polish & interior care.',
+};
+
+function seededRandom(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
+const rand = seededRandom(42);
+const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+const pickN = (arr, n) => {
+  const shuffled = [...arr].sort(() => rand() - 0.5);
+  return shuffled.slice(0, n);
+};
+
+const agents = agentPhotos.map((person, i) => {
+  const city = pick(CITIES);
+  const leaning = person.gender === 'female' ? FEMALE_LEANING : MALE_LEANING;
+  const skillCount = 1 + Math.floor(rand() * 3); // 1-3 skills
+  const primary = pick(leaning);
+  const extras = pickN(leaning.filter((s) => s !== primary), skillCount - 1);
+  const skills = [primary, ...extras];
+
+  const isApproved = i >= 3; // first 3 pending, to demo the admin-approval flow like the original seed
+  const status = isApproved ? pick(['online', 'online', 'online', 'offline', 'busy']) : 'offline';
+  const ratingCount = isApproved ? 10 + Math.floor(rand() * 300) : 0;
+  const rating = isApproved ? Math.round((3.8 + rand() * 1.2) * 10) / 10 : 0;
+  const totalJobs = isApproved ? Math.floor(ratingCount * (1.5 + rand())) : 0;
+
+  const latJitter = (rand() - 0.5) * 0.08;
+  const lngJitter = (rand() - 0.5) * 0.08;
+
+  return {
+    name: `${person.firstName} ${person.lastName}`,
+    phone: `+9198${String(10000000 + i).slice(0, 8)}`,
+    email: `${person.firstName.toLowerCase()}.${person.lastName.toLowerCase()}${i}@serveease.dev`,
+    profileImage: person.profileImage,
+    gender: person.gender,
+    city: city.name,
+    bio: BIO_TEMPLATES[primary],
+    rating,
+    ratingCount,
+    totalJobs,
+    status,
+    isApproved,
+    currentLocation: { lat: city.lat + latJitter, lng: city.lng + lngJitter, updatedAt: new Date() },
+    skills,
+  };
+});
 
 module.exports = agents;

@@ -10,7 +10,10 @@
  *   npm run seed:clean           # wipe seed data first, then re-seed
  *   NODE_ENV=local npm run seed  # use MONGO_IP_LOCAL for native driver
  */
-require('dotenv').config();
+const dotenvConfig = process.env.DOTENV_CONFIG_PATH
+    ? { path: process.env.DOTENV_CONFIG_PATH, override: true }
+    : {};
+require('dotenv').config(dotenvConfig);
 
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
@@ -328,14 +331,23 @@ async function seedServeease() {
     const Agent    = require('../modules/serveease/models/Agent');
     const User     = require('../modules/serveease/models/User');
     const Coupon   = require('../modules/serveease/models/Coupon');
+    const Booking  = require('../modules/serveease/models/Booking');
+    const Review   = require('../modules/serveease/models/Review');
 
     const categoriesData          = require('../modules/serveease/seeds/categories.seed');
     const servicesByCategorySlug  = require('../modules/serveease/seeds/services.seed');
     const agentsData              = require('../modules/serveease/seeds/agents.seed');
+    const customersData           = require('../modules/serveease/seeds/customers.seed');
+    const generateBookings        = require('../modules/serveease/seeds/bookings.seed');
+    const generateReviews         = require('../modules/serveease/seeds/reviews.seed');
+    const { reviews: reviewPhotoPool } = require('../modules/serveease/seeds/image-assets.json');
 
     if (CLEAN) {
-        await Promise.all([Category.deleteMany(), Service.deleteMany(), Agent.deleteMany(), Coupon.deleteMany()]);
-        console.log('   Cleaned: categories, services, agents, coupons');
+        await Promise.all([
+            Category.deleteMany(), Service.deleteMany(), Agent.deleteMany(), Coupon.deleteMany(),
+            Booking.deleteMany(), Review.deleteMany(), User.deleteMany({ isAdmin: { $ne: true } }),
+        ]);
+        console.log('   Cleaned: categories, services, agents, coupons, bookings, reviews, customers');
     }
 
     // Categories
@@ -394,6 +406,57 @@ async function seedServeease() {
         { upsert: true }
     );
     console.log(`   Admin user ensured: ${adminPhone}`);
+
+    // Customers
+    const customerDocs = [];
+    for (const customerData of customersData) {
+        const existing = await User.findOne({ phone: customerData.phone });
+        if (existing) { customerDocs.push(existing); continue; }
+        customerDocs.push(await User.create(customerData));
+    }
+    console.log(`   Seeded: ${customerDocs.length} customers`);
+
+    // Bookings + reviews (only generated once, on an empty collection)
+    const serviceDocs = await Service.find({});
+    const agentDocs = await Agent.find({});
+    let bookingDocs = await Booking.find({});
+    if (bookingDocs.length === 0) {
+        const bookingInput = generateBookings({ services: serviceDocs, agents: agentDocs, customers: customerDocs, count: 260 });
+        bookingDocs = await Booking.insertMany(bookingInput);
+    }
+    console.log(`   Seeded: ${bookingDocs.length} bookings`);
+
+    const existingReviewCount = await Review.countDocuments();
+    if (existingReviewCount === 0) {
+        const reviewInput = generateReviews({ bookings: bookingDocs, reviewPhotoPool, coverage: 0.65 });
+        const reviewDocs = await Review.insertMany(reviewInput);
+
+        await Promise.all(reviewDocs.map((r) => Booking.findByIdAndUpdate(r.bookingId, { review: r._id })));
+
+        const byService = new Map();
+        const byAgent = new Map();
+        for (const r of reviewDocs) {
+            const sKey = String(r.serviceId);
+            if (!byService.has(sKey)) byService.set(sKey, []);
+            byService.get(sKey).push(r.rating);
+            if (r.agentId) {
+                const aKey = String(r.agentId);
+                if (!byAgent.has(aKey)) byAgent.set(aKey, []);
+                byAgent.get(aKey).push(r.rating);
+            }
+        }
+        for (const [serviceId, ratings] of byService) {
+            const avg = Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10;
+            await Service.findByIdAndUpdate(serviceId, { rating: avg, ratingCount: ratings.length });
+        }
+        for (const [agentId, ratings] of byAgent) {
+            const avg = Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10;
+            await Agent.findByIdAndUpdate(agentId, { rating: avg, ratingCount: ratings.length });
+        }
+        console.log(`   Seeded: ${reviewDocs.length} reviews`);
+    } else {
+        console.log(`   Seeded: 0 reviews (${existingReviewCount} already exist)`);
+    }
 
     await mongoose.disconnect();
 }
