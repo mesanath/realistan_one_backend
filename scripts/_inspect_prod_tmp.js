@@ -1,0 +1,21 @@
+require('dotenv').config({ path: '.env.development' });
+const { MongoClient } = require('mongodb');
+(async () => {
+  const client = new MongoClient(process.env.MONGO_IP);
+  await client.connect();
+  const db = client.db(process.env.MONGO_DB);
+  const propertiesCol = db.collection('properties');
+  const articlesCol = db.collection('articles');
+  console.log('DB:', process.env.MONGO_DB);
+  console.log('properties count:', await propertiesCol.countDocuments());
+  console.log('articles count:', await articlesCol.countDocuments());
+  console.log('\n-- sample properties --');
+  const props = await propertiesCol.find({}).limit(5).toArray();
+  props.forEach(p => console.log(JSON.stringify({ propertyID: p.propertyID, title: p.title, city: p.city, uploadedPaths: p.uploadedPaths }, null, 0)));
+  console.log('\n-- sample articles --');
+  const arts = await articlesCol.find({}).limit(5).toArray();
+  arts.forEach(a => console.log(JSON.stringify({ articleID: a.articleID, title: a.title, imageUrl: a.imageUrl }, null, 0)));
+  console.log('\n-- collections in db --');
+  console.log((await db.listCollections().toArray()).map(c => c.name));
+  await client.close();
+})().catch(e => { console.error(e); process.exit(1); });
