@@ -106,41 +106,66 @@ async function seedServeease() {
         console.log('   Cleaned: categories, services, agents, coupons, bookings, reviews, customers');
     }
 
-    // Categories
+    // Categories — creates new ones, and backfills `image` on existing ones that predate
+    // image-assets.json (never overwrites an image that's already set).
     const categoryMap = {};
+    let categoryImageBackfillCount = 0;
     for (const cat of categoriesData) {
         const existing = await Category.findOne({ slug: cat.slug });
-        if (existing) { categoryMap[cat.slug] = existing._id; continue; }
+        if (existing) {
+            categoryMap[cat.slug] = existing._id;
+            if (!existing.image && cat.image) {
+                await Category.updateOne({ _id: existing._id }, { $set: { image: cat.image } });
+                categoryImageBackfillCount++;
+            }
+            continue;
+        }
         const created = await Category.create(cat);
         categoryMap[cat.slug] = created._id;
     }
-    console.log(`   Seeded: ${Object.keys(categoryMap).length} categories`);
+    console.log(`   Seeded: ${Object.keys(categoryMap).length} categories` + (categoryImageBackfillCount ? ` (${categoryImageBackfillCount} backfilled with images)` : ''));
 
-    // Services
+    // Services — creates new ones, and backfills `images` on existing ones that predate
+    // image-assets.json (never overwrites images that are already set).
     let serviceCount = 0;
+    let serviceImageBackfillCount = 0;
     for (const [slug, services] of Object.entries(servicesByCategorySlug)) {
         const categoryId = categoryMap[slug];
         if (!categoryId) continue;
         for (const svc of services) {
             const existing = await Service.findOne({ slug: svc.slug });
-            if (existing) continue;
+            if (existing) {
+                if ((!existing.images || existing.images.length === 0) && svc.images?.length) {
+                    await Service.updateOne({ _id: existing._id }, { $set: { images: svc.images } });
+                    serviceImageBackfillCount++;
+                }
+                continue;
+            }
             await Service.create({ ...svc, categoryId });
             serviceCount++;
         }
         await Category.findByIdAndUpdate(categoryId, { serviceCount: await Service.countDocuments({ categoryId, isActive: true }) });
     }
-    console.log(`   Seeded: ${serviceCount} services`);
+    console.log(`   Seeded: ${serviceCount} services` + (serviceImageBackfillCount ? ` (${serviceImageBackfillCount} backfilled with images)` : ''));
 
-    // Agents
+    // Agents — creates new ones, and backfills `profileImage` on existing ones that predate
+    // image-assets.json (never overwrites a photo that's already set).
     let agentCount = 0;
+    let agentImageBackfillCount = 0;
     for (const agentData of agentsData) {
         const existing = await Agent.findOne({ phone: agentData.phone });
-        if (existing) continue;
+        if (existing) {
+            if (!existing.profileImage && agentData.profileImage) {
+                await Agent.updateOne({ _id: existing._id }, { $set: { profileImage: agentData.profileImage } });
+                agentImageBackfillCount++;
+            }
+            continue;
+        }
         const skillIds = agentData.skills.map(slug => categoryMap[slug]).filter(Boolean);
         await Agent.create({ ...agentData, skills: skillIds });
         agentCount++;
     }
-    console.log(`   Seeded: ${agentCount} agents`);
+    console.log(`   Seeded: ${agentCount} agents` + (agentImageBackfillCount ? ` (${agentImageBackfillCount} backfilled with images)` : ''));
 
     // Coupons
     const coupons = [
@@ -219,8 +244,12 @@ async function seedServeease() {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
+// Never log MONGO_URI/MONGOOSE_URI directly — both carry the DB password in plaintext
+// (mongodb+srv://user:PASSWORD@host/...). Mask everything between "://" and "@".
+const maskCredentials = (uri) => (uri || '').replace(/:\/\/[^@]+@/, '://****:****@');
+
 async function run() {
-    console.log(`Seeding database: ${MONGO_URI}/${DB_NAME}${CLEAN ? ' [--clean]' : ''}`);
+    console.log(`Seeding database: ${maskCredentials(MONGO_URI)}/${DB_NAME}${CLEAN ? ' [--clean]' : ''}`);
     await seedRealestate();
     await seedServeease();
     console.log('\nSeeding complete.\n');
