@@ -8,6 +8,7 @@ router.post('/loginbymobile', otpRateLimit, ctrl.sendOtp);
 router.post('/loginbymobile/verify', otpVerifyLimit, ctrl.verifyOtp);
 router.get('/getprofile', authenticate, ctrl.getProfile);
 router.post('/updateuserdetails', authenticate, ctrl.updateUserDetails);
+router.post('/deleteaccount', authenticate, ctrl.deleteAccount);
 router.post('/loginbysocial', ctrl.loginBySocial);
 router.post('/loginbytruecaller', ctrl.loginByTruecaller);
 router.post('/logout', ctrl.logout);

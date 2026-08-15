@@ -10,6 +10,7 @@ router.post('/refresh', ctrl.refreshToken);
 router.get('/me', authenticate, ctrl.getMe);
 router.get('/loyalty', authenticate, ctrl.getLoyalty);
 router.patch('/profile', authenticate, updateProfileRules, ctrl.updateProfile);
+router.delete('/account', authenticate, ctrl.deleteAccount);
 router.post('/favorites/:serviceId', authenticate, ctrl.toggleFavorite);
 router.post('/addresses', authenticate, ctrl.addAddress);
 router.delete('/addresses/:addressId', authenticate, ctrl.removeAddress);

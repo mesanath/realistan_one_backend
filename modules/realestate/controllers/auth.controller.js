@@ -187,6 +187,9 @@ exports.verifyOtp = async (req, res) => {
         }
 
         const userAccountsData = await userAccountsDB.findOne({ mobile });
+        if (userAccountsData?.isDeleted) {
+            return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
+        }
         const screenName = userAccountsData?.screenName || await generateScreenName(mobile);
 
         const setObj = { updatedAt: +new Date(), loginType: 'mobile', whatsappFlag: whatsappFlag || false };
@@ -299,6 +302,50 @@ exports.updateUserDetails = async (req, res) => {
     }
 };
 
+exports.deleteAccount = async (req, res) => {
+    try {
+        const decoded = req.user;
+        const userAccountsDB = db.get().collection('userAccounts');
+        const userTokensDB = db.get().collection('userTokens');
+
+        const findQuery = decoded?.mobile
+            ? { mobile: decoded.mobile }
+            : decoded?.socialId
+                ? { socialId: decoded.socialId }
+                : { _id: ObjectID(decoded._id) };
+
+        const userResponse = await userAccountsDB.findOne(findQuery);
+        if (!userResponse) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        if (userResponse.isDeleted) {
+            return res.status(400).json({ success: false, message: 'Account already deleted' });
+        }
+
+        // Soft-delete + scrub PII. Keeps the document (and its `mobile`/`socialId`) so a future
+        // login with the same identifier can be recognised and blocked by the isDeleted checks in
+        // verifyOtp / loginBySocial / loginByTruecaller, rather than silently resurrecting the account.
+        await userAccountsDB.updateOne(findQuery, {
+            $set: { isDeleted: true, deletedAt: +new Date(), screenName: 'Deleted User', whatsappFlag: false },
+            $unset: { email: '', socialName: '', device_id: '', savedProperties: '' },
+        });
+
+        // Drop the persisted refresh/session record — hygiene only, the JWT itself stays valid
+        // until it naturally expires since auth is stateless (see src/utils/jwt.js verifyToken).
+        const tokenLookups = [{ _id: userResponse._id }];
+        if (userResponse.mobile) tokenLookups.push({ mobile: userResponse.mobile });
+        if (userResponse.socialId) tokenLookups.push({ socialId: userResponse.socialId });
+        await userTokensDB.deleteMany({ $or: tokenLookups });
+
+        res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+
+        return res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('deleteAccount error:', error);
+        return res.status(400).json({ success: false, message: error.message || String(error) });
+    }
+};
+
 // ─── Social login helpers ──────────────────────────────────────────────────────
 
 const socialLoginByGoogle = async ({ platform, idToken }) => {
@@ -360,6 +407,9 @@ exports.loginBySocial = async (req, res) => {
 
         const userAccountsDB = db.get().collection('userAccounts');
         let userAccountsData = await userAccountsDB.findOne({ socialId: socialData.socialId });
+        if (userAccountsData?.isDeleted) {
+            return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
+        }
 
         const screenName = userAccountsData?.screenName
             || await generateScreenName(socialData.name || socialData.email || socialData.socialId);
@@ -435,6 +485,9 @@ exports.loginByTruecaller = async (req, res) => {
         const mobile = response.phone_number.at(0) !== '+' ? '+' + response.phone_number : response.phone_number;
         const userAccountsDB = db.get().collection('userAccounts');
         let userAccountsData = await userAccountsDB.findOne({ mobile });
+        if (userAccountsData?.isDeleted) {
+            return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
+        }
 
         const screenName = userAccountsData?.screenName || await generateScreenName(mobile);
         const setObj = { updatedAt: +new Date(), loginType: 'truecaller', whatsappFlag: whatsappFlag || false };

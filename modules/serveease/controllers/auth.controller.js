@@ -103,6 +103,9 @@ exports.verifyOtp = async (req, res) => {
       if (!user) return res.status(403).json({ success: false, message: 'Admin access denied for this number' });
     } else {
       user = await User.findOne({ phone });
+      if (user?.isDeleted) {
+        return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
+      }
       if (!user) {
         user = await User.create({ phone, name: name || 'User', ...(appType && { appType }) });
         isNew = true;
@@ -178,6 +181,36 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findByIdAndUpdate(id, { $set: updates }, { new: true, runValidators: true }).select('-__v');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, user: { ...user.toObject(), role } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// DELETE /api/v1/serveease/auth/account
+exports.deleteAccount = async (req, res) => {
+  try {
+    const { id, role } = req.user;
+    if (role === 'agent') return res.status(403).json({ success: false, message: 'Not available for agents' });
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.isDeleted) return res.status(400).json({ success: false, message: 'Account already deleted' });
+
+    // Soft-delete + scrub PII. `phone` (unique, login identifier) and booking/wallet/loyalty
+    // history are kept so past bookings and admin reporting still resolve correctly — only the
+    // isDeleted flag blocks the phone number from logging back in (see verifyOtp above).
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    user.isActive = false;
+    user.name = 'Deleted User';
+    user.email = undefined;
+    user.profileImage = null;
+    user.addresses = [];
+    user.fcmToken = null;
+    user.pushSubscription = null;
+    await user.save();
+
+    return res.json({ success: true, message: 'Account deleted successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

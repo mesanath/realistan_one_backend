@@ -155,6 +155,55 @@ describe('Auth — OTP login flow', () => {
         });
     });
 
+    // ── Delete account ────────────────────────────────────────────────────────
+    describe('POST /api/v1/realestate/auth/deleteaccount', () => {
+        it('returns 401 without token', async () => {
+            const res = await request(getApp()).post('/api/v1/realestate/auth/deleteaccount');
+            expect(res.status).toBe(401);
+        });
+
+        it('soft-deletes the account, scrubs PII, and clears the cookie', async () => {
+            const token = await getAuthToken();
+            const res = await request(getApp())
+                .post('/api/v1/realestate/auth/deleteaccount')
+                .set('authorization', token);
+
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(true);
+            const cookies = res.headers['set-cookie'] || [];
+            expect(cookies.some(c => c.startsWith('authToken=;') || c.includes('Max-Age=0'))).toBe(true);
+
+            const profile = await request(getApp())
+                .get('/api/v1/realestate/auth/getprofile')
+                .set('authorization', token);
+            expect(profile.body.data.screenName).toBe('Deleted User');
+            expect(profile.body.data.email).toBeUndefined();
+        });
+
+        it('returns 400 when the account is already deleted', async () => {
+            const token = await getAuthToken();
+            await request(getApp()).post('/api/v1/realestate/auth/deleteaccount').set('authorization', token);
+
+            const res = await request(getApp())
+                .post('/api/v1/realestate/auth/deleteaccount')
+                .set('authorization', token);
+            expect(res.status).toBe(400);
+            expect(res.body.success).toBe(false);
+        });
+
+        it('blocks a subsequent OTP login for the deleted account', async () => {
+            const token = await getAuthToken();
+            await request(getApp()).post('/api/v1/realestate/auth/deleteaccount').set('authorization', token);
+
+            await seedOtp();
+            const res = await request(getApp())
+                .post('/api/v1/realestate/auth/loginbymobile/verify')
+                .send({ mobile: TEST_MOBILE, otp: TEST_OTP, whatsappFlag: false });
+            expect(res.status).toBe(403);
+            expect(res.body.success).toBe(false);
+        });
+    });
+
     // ── Logout ────────────────────────────────────────────────────────────────
     describe('POST /api/v1/realestate/auth/logout', () => {
         it('clears authToken cookie', async () => {

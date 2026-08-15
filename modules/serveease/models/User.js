@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   isVerified: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
+  // Separate from isActive (which admins toggle to block customers) so a self-service
+  // account deletion is unambiguous and can't be confused with / undone by an admin block-toggle.
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date, default: null },
   totalBookings: { type: Number, default: 0 },
   totalSpent: { type: Number, default: 0 },
   corporate: {

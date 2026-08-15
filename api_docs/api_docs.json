@@ -614,6 +614,31 @@
               }
             },
             {
+              "name": "Delete Account",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{re_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/realestate/auth/deleteaccount",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "realestate",
+                    "auth",
+                    "deleteaccount"
+                  ]
+                }
+              }
+            },
+            {
               "name": "Logout",
               "request": {
                 "method": "POST",
@@ -1819,6 +1844,31 @@
                       "key": "addressId",
                       "value": "<addressId>"
                     }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Account",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/auth/account",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "auth",
+                    "account"
                   ]
                 }
               }
