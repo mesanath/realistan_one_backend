@@ -34,16 +34,18 @@ describe('GET /health', () => {
 });
 
 describe('Auth routes', () => {
-  it('POST /api/v1/serveease/auth/send-otp rejects missing phone', async () => {
+  // OTP send/verify moved to the shared login system — see /api/v1/auth/send-otp
+  // (src/auth/unifiedAuth.controller.js), also exercised in modules/realestate/tests/auth.test.js.
+  it('POST /api/v1/auth/send-otp rejects missing phone', async () => {
     const res = await request(app)
-      .post('/api/v1/serveease/auth/send-otp')
+      .post('/api/v1/auth/send-otp')
       .send({});
     expect(res.status).toBe(400);
   });
 
-  it('POST /api/v1/serveease/auth/send-otp rejects invalid phone format', async () => {
+  it('POST /api/v1/auth/send-otp rejects invalid phone format', async () => {
     const res = await request(app)
-      .post('/api/v1/serveease/auth/send-otp')
+      .post('/api/v1/auth/send-otp')
       .send({ phone: '12345' });
     expect(res.status).toBe(400);
   });

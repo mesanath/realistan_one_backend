@@ -1,12 +1,10 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/auth.controller');
 const { authenticate } = require('../../../src/middleware/serveease-auth.middleware');
-const { otpRateLimit } = require('../../../src/middleware/rateLimit.middleware');
-const { sendOtpRules, verifyOtpRules, updateProfileRules } = require('../validators/validators');
+const { updateProfileRules } = require('../validators/validators');
 
-router.post('/send-otp', otpRateLimit, sendOtpRules, ctrl.sendOtp);
-router.post('/verify-otp', verifyOtpRules, ctrl.verifyOtp);
-router.post('/refresh', ctrl.refreshToken);
+// OTP login/verify/refresh moved to the single shared login system — see
+// POST /api/v1/auth/send-otp, /verify-otp and /refresh (src/auth/unifiedAuth.controller.js).
 router.get('/me', authenticate, ctrl.getMe);
 router.get('/loyalty', authenticate, ctrl.getLoyalty);
 router.patch('/profile', authenticate, updateProfileRules, ctrl.updateProfile);

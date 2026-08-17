@@ -2,10 +2,9 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/auth.controller');
 const { authenticate } = require('../../../src/middleware/realestate-auth.middleware');
-const { otpRateLimit, otpVerifyLimit } = require('../../../src/middleware/rateLimit.middleware');
 
-router.post('/loginbymobile', otpRateLimit, ctrl.sendOtp);
-router.post('/loginbymobile/verify', otpVerifyLimit, ctrl.verifyOtp);
+// OTP login/verify moved to the single shared login system — see
+// POST /api/v1/auth/send-otp and /api/v1/auth/verify-otp (src/auth/unifiedAuth.controller.js).
 router.get('/getprofile', authenticate, ctrl.getProfile);
 router.post('/updateuserdetails', authenticate, ctrl.updateUserDetails);
 router.post('/deleteaccount', authenticate, ctrl.deleteAccount);

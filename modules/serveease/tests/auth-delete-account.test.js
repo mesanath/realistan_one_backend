@@ -1,7 +1,8 @@
 /**
  * Integration tests for self-service account deletion.
  * Route: DELETE /api/v1/serveease/auth/account
- * Also covers the isDeleted re-login guard in POST /api/v1/serveease/auth/verify-otp.
+ * Also covers the isDeleted re-login guard in the shared login system's
+ * POST /api/v1/auth/verify-otp (src/auth/unifiedAuth.controller.js).
  */
 
 jest.mock('../../../src/middleware/rateLimit.middleware', () => {
@@ -99,10 +100,10 @@ describe('DELETE /api/v1/serveease/auth/account', () => {
 
     await request(app).delete('/api/v1/serveease/auth/account').set('Authorization', `Bearer ${token}`);
 
-    const sendRes = await request(app).post('/api/v1/serveease/auth/send-otp').send({ phone });
+    const sendRes = await request(app).post('/api/v1/auth/send-otp').send({ phone });
     expect(sendRes.status).toBe(200);
 
-    const verifyRes = await request(app).post('/api/v1/serveease/auth/verify-otp').send({ phone, otp: sendRes.body.devOtp });
+    const verifyRes = await request(app).post('/api/v1/auth/verify-otp').send({ phone, otp: sendRes.body.devOtp });
     expect(verifyRes.status).toBe(403);
     expect(verifyRes.body.success).toBe(false);
   });

@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { verifyAuthToken } = require('../utils/token');
 
 const authenticate = (req, res, next) => {
   const header = req.headers.authorization;
@@ -7,13 +8,12 @@ const authenticate = (req, res, next) => {
   }
   const token = header.split(' ')[1];
   try {
-    // Primary: verify with JWT_SECRET (regular serveease users/agents)
+    // Primary: the one shared login system (customers/agents)
+    req.user = verifyAuthToken(token);
+    return next();
+  } catch {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-      return next();
-    } catch {
-      // Secondary: accept unified admin tokens (JWT_ADMIN_SECRET || JWT_SIG)
+      // Secondary: unified admin tokens (separate system — JWT_ADMIN_SECRET || JWT_SIG)
       const adminSecret = process.env.JWT_ADMIN_SECRET || process.env.JWT_SIG;
       const decoded = jwt.verify(token, adminSecret);
       if (decoded.isSuperAdmin || decoded.role === 'admin') {
@@ -21,9 +21,9 @@ const authenticate = (req, res, next) => {
         return next();
       }
       return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
-  } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
 };
 

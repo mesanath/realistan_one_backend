@@ -1,10 +1,10 @@
 'use strict';
-const { verifyToken } = require('../utils/jwt');
+const { verifyAuthToken } = require('../utils/token');
 
 exports.authenticate = async (req, res, next) => {
     try {
         // Cookie takes priority (web sessions); fall back to Bearer header (API / mobile clients)
-        let token = req.cookies?.realistoken;
+        let token = req.cookies?.realistoken || req.cookies?.authToken;
 
         if (!token) {
             const authHeader = req.headers.authorization;
@@ -14,8 +14,7 @@ exports.authenticate = async (req, res, next) => {
             token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
         }
 
-        const decoded = await verifyToken({ authorization: token });
-        req.user = decoded;
+        req.user = verifyAuthToken(token);
         next();
     } catch (err) {
         return res.status(401).json({ success: false, message: 'Invalid or expired token' });
@@ -25,19 +24,14 @@ exports.authenticate = async (req, res, next) => {
 // Populates req.user if a valid token is present; otherwise continues with req.user = null
 exports.authenticateOptional = async (req, res, next) => {
     try {
-        let token = req.cookies?.realistoken;
+        let token = req.cookies?.realistoken || req.cookies?.authToken;
         if (!token) {
             const authHeader = req.headers.authorization;
             if (authHeader) {
                 token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
             }
         }
-        if (token) {
-            const decoded = await verifyToken({ authorization: token });
-            req.user = decoded;
-        } else {
-            req.user = null;
-        }
+        req.user = token ? verifyAuthToken(token) : null;
     } catch {
         req.user = null;
     }

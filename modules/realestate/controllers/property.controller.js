@@ -1,6 +1,7 @@
 'use strict';
-const { db, ObjectID } = require('../../../src/utils/dbs');
+const { db } = require('../../../src/utils/dbs');
 const { getIo } = require('../../../src/socket/index');
+const User = require('../../../src/models/User');
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -421,22 +422,18 @@ exports.toggleShortlist = async (req, res) => {
         const { propertyID } = req.body;
         if (!propertyID) return res.status(400).json({ success: false, message: 'Missing propertyID' });
 
-        const userAccountsDB = db.get().collection('userAccounts');
-        const user = await userAccountsDB.findOne(
-            req.user.mobile ? { mobile: req.user.mobile } : { _id: ObjectID(req.user._id) }
-        );
+        const user = await User.findById(req.user._id || req.user.id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
         const saved = Array.isArray(user.savedProperties) ? user.savedProperties : [];
         const alreadySaved = saved.includes(propertyID);
-        const update = alreadySaved
-            ? { $pull: { savedProperties: propertyID } }
-            : { $addToSet: { savedProperties: propertyID } };
 
-        await userAccountsDB.updateOne(
-            req.user.mobile ? { mobile: req.user.mobile } : { _id: ObjectID(req.user._id) },
-            update
-        );
+        if (alreadySaved) {
+            user.savedProperties = saved.filter(id => id !== propertyID);
+        } else {
+            user.savedProperties = [...saved, propertyID];
+        }
+        await user.save();
 
         // Notify property owner when a user adds their listing to shortlist
         if (!alreadySaved) {
@@ -471,10 +468,7 @@ exports.toggleShortlist = async (req, res) => {
 
 exports.getShortlisted = async (req, res) => {
     try {
-        const userAccountsDB = db.get().collection('userAccounts');
-        const user = await userAccountsDB.findOne(
-            req.user.mobile ? { mobile: req.user.mobile } : { _id: ObjectID(req.user._id) }
-        );
+        const user = await User.findById(req.user._id || req.user.id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
         const savedIds = Array.isArray(user.savedProperties) ? user.savedProperties : [];

@@ -6,7 +6,7 @@ const {
     TEST_MOBILE, TEST_OTP,
 } = require('./helpers/setup');
 
-describe('Auth — OTP login flow', () => {
+describe('Auth — one shared login system (realestate + serveease)', () => {
     beforeEach(async () => {
         await cleanupTestUser();
     });
@@ -15,74 +15,69 @@ describe('Auth — OTP login flow', () => {
         await cleanupTestUser();
     });
 
-    // ── Send OTP ──────────────────────────────────────────────────────────────
-    describe('POST /api/v1/realestate/auth/loginbymobile', () => {
+    // ── Send OTP (unified — same endpoint serveease uses) ───────────────────────
+    describe('POST /api/v1/auth/send-otp', () => {
         it('returns success when mobile is provided', async () => {
-            await seedOtp();
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile')
-                .send({ mobile: TEST_MOBILE, otp: '', whatsappFlag: false });
+                .post('/api/v1/auth/send-otp')
+                .send({ mobile: TEST_MOBILE });
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
         });
 
         it('returns 400 when mobile is missing', async () => {
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile')
-                .send({ whatsappFlag: false });
+                .post('/api/v1/auth/send-otp')
+                .send({});
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);
         });
 
-        it('delegates to verifyOtp when otp is present in body', async () => {
-            await seedOtp();
+        it('returns the hardcoded dev OTP outside production', async () => {
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile')
-                .send({ mobile: TEST_MOBILE, otp: TEST_OTP, whatsappFlag: false });
+                .post('/api/v1/auth/send-otp')
+                .send({ mobile: TEST_MOBILE });
+            expect(res.body.devOtp).toBe('123456');
+        });
+
+        it('accepts a separate countryCode + phone pair', async () => {
+            const res = await request(getApp())
+                .post('/api/v1/auth/send-otp')
+                .send({ countryCode: '91', phone: '9000000001' });
             expect(res.status).toBe(200);
-            expect(res.body.success).toBe(true);
-            expect(typeof res.body.token).toBe('string');
+            expect(res.body.mobile).toBe(TEST_MOBILE);
         });
     });
 
     // ── Verify OTP ────────────────────────────────────────────────────────────
-    describe('POST /api/v1/realestate/auth/loginbymobile/verify', () => {
-        it('returns token and sets authToken cookie on valid OTP', async () => {
+    describe('POST /api/v1/auth/verify-otp', () => {
+        it('returns tokens on valid OTP', async () => {
             await seedOtp();
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile/verify')
-                .send({ mobile: TEST_MOBILE, otp: TEST_OTP, whatsappFlag: false });
+                .post('/api/v1/auth/verify-otp')
+                .send({ mobile: TEST_MOBILE, otp: TEST_OTP });
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(typeof res.body.token).toBe('string');
+            expect(typeof res.body.tokens.access).toBe('string');
+            expect(typeof res.body.tokens.refresh).toBe('string');
+            expect(res.body.token).toBe(res.body.tokens.access); // legacy flat field
             expect(res.body.mobile).toBe(TEST_MOBILE);
-            // Cookie should be set
-            const cookies = res.headers['set-cookie'] || [];
-            expect(cookies.some(c => c.startsWith('authToken='))).toBe(true);
         });
 
         it('returns 400 on wrong OTP', async () => {
             await seedOtp();
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile/verify')
-                .send({ mobile: TEST_MOBILE, otp: '000000', whatsappFlag: false });
+                .post('/api/v1/auth/verify-otp')
+                .send({ mobile: TEST_MOBILE, otp: '000000' });
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);
         });
 
         it('returns 400 when mobile is missing', async () => {
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile/verify')
+                .post('/api/v1/auth/verify-otp')
                 .send({ otp: TEST_OTP });
-            expect(res.status).toBe(400);
-            expect(res.body.success).toBe(false);
-        });
-
-        it('returns 400 when OTP length < 6', async () => {
-            const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile/verify')
-                .send({ mobile: TEST_MOBILE, otp: '123' });
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);
         });
@@ -98,9 +93,9 @@ describe('Auth — OTP login flow', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
-            // Bug fix: key must be "data", not "user"
             expect(res.body.data).toBeDefined();
             expect(res.body.user).toBeUndefined();
+            expect(res.body.data.phone).toBe(TEST_MOBILE);
             expect(res.body.data.mobile).toBe(TEST_MOBILE);
         });
 
@@ -130,7 +125,6 @@ describe('Auth — OTP login flow', () => {
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
 
-            // Verify persisted
             const profile = await request(getApp())
                 .get('/api/v1/realestate/auth/getprofile')
                 .set('authorization', token);
@@ -197,8 +191,8 @@ describe('Auth — OTP login flow', () => {
 
             await seedOtp();
             const res = await request(getApp())
-                .post('/api/v1/realestate/auth/loginbymobile/verify')
-                .send({ mobile: TEST_MOBILE, otp: TEST_OTP, whatsappFlag: false });
+                .post('/api/v1/auth/verify-otp')
+                .send({ mobile: TEST_MOBILE, otp: TEST_OTP });
             expect(res.status).toBe(403);
             expect(res.body.success).toBe(false);
         });
@@ -211,7 +205,6 @@ describe('Auth — OTP login flow', () => {
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
             const cookies = res.headers['set-cookie'] || [];
-            // Cookie should be cleared (Max-Age=0 or Expires in the past)
             expect(cookies.some(c => c.startsWith('authToken=;') || c.includes('Max-Age=0'))).toBe(true);
         });
     });

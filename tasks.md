@@ -58,6 +58,40 @@ All belong under `/api/v1/realestate-admin/`.
 
 ---
 
+## Realistan RN App (Mobile) — Pending Backend Tasks (identified 2026-08-15)
+
+Requested from the mobile app side (`realistan_rn_app`) while scoping push notifications for the
+real-estate app. Checked what already exists here first rather than assuming a blank slate:
+
+- [ ] **Decide the actual trigger events before building anything** — realestate has zero notification
+  use-cases defined today (no equivalent of ServeEase's `notify.bookingConfirmed`/etc.). Candidates:
+  callback-request response, shortlist price change, listing approved/rejected, post-property status.
+  Building device-token plumbing with nothing to send is exactly the kind of speculative work worth
+  avoiding — pick at least one real trigger first.
+- [ ] **`sendPush()` in `modules/serveease/services/notification.service.js` is currently a stub, not a
+  live integration** — it only fires when `FIREBASE_SERVICE_ACCOUNT_JSON` resolves to a real file, and
+  `config/firebase-service-account.json` doesn't exist in this repo (`config/` directory isn't even
+  present). `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` are also unset in `.env`/`.env.development` — the
+  separate `sendPushNotification` (Web Push) path is inactive too, and wouldn't apply to a native app
+  regardless (Web Push ≠ mobile push). **A real Firebase project + service account JSON is needed before
+  any push actually sends**, for ServeEase or realestate.
+- [ ] **Reuse vs. duplicate**: once real Firebase credentials exist, `sendPush({token, title, body, data})`
+  is already generic enough (takes a raw FCM token, not coupled to ServeEase's models) to call directly
+  from realestate controllers — recommend generalizing/reusing this rather than standing up a second
+  notification service. `notify.*` convenience wrappers are ServeEase-specific; realestate would add its
+  own small set once trigger events are picked.
+- [ ] **Realestate's `User`/auth model has no device-token field at all** (unlike ServeEase's
+  `User`/`Agent` models, which have `pushSubscription`) — needs one, plus an endpoint to
+  register/update/clear a device's token per logged-in user (e.g.
+  `POST /api/v1/realestate/auth/device-token`).
+- [ ] **Token format decision**: the mobile app will most likely use Expo's push token abstraction
+  (`expo-notifications`) rather than raw FCM/APNs tokens, since it handles both platforms — including iOS
+  — through one token without this backend needing separate Apple push credentials. If so, sending needs
+  `expo-server-sdk` (a small addition) instead of / alongside the raw `firebase-admin` call in `sendPush`.
+  Confirm which token shape this backend should accept before the registration endpoint is built.
+
+---
+
 ## Backlog
 - [ ] Add unified API documentation
 - [ ] Set up CI/CD pipeline

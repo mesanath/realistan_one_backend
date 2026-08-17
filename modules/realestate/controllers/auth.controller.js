@@ -1,35 +1,30 @@
 'use strict';
-const { db, ObjectID } = require('../../../src/utils/dbs');
+const User = require('../../../src/models/User');
+const { db } = require('../../../src/utils/dbs');
 const { messages } = require('../utils/constants');
-const jwt = require('jsonwebtoken');
 const rand = require('random-key');
-const crypto = require('crypto');
 const axios = require('axios');
 const appleSignin = require('apple-signin-auth');
 const { OAuth2Client } = require('google-auth-library');
+const { signAuthTokens } = require('../../../src/utils/token');
+
+// OTP send/verify now live in src/auth/unifiedAuth.controller.js — the one login
+// system shared with serveease (see /api/v1/auth/send-otp, /verify-otp). What's left
+// here is realestate-specific: profile management and the alternate sign-in methods
+// (social, Truecaller) that serveease doesn't have.
 
 const COOKIE_NAME = 'authToken';
 
 const setAuthCookie = (res, token) => {
-    const expiryStr = process.env.JWT_ACCESS_TOKEN_SECRET_EXPIRY || '7d';
-    const match = expiryStr.match(/^(\d+)([smhd])$/);
-    const multipliers = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
-    const maxAge = match ? parseInt(match[1]) * (multipliers[match[2]] || 86400000) : 7 * 86400000;
-
     res.cookie(COOKIE_NAME, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge,
+        maxAge: 7 * 86400000,
     });
 };
 
-// ─── Shared helpers ────────────────────────────────────────────────────────────
-
-const generateOTP = (length) => {
-    const randomBytes = crypto.randomBytes(length);
-    return Array.from(randomBytes).map(byte => byte % 10).join('').slice(0, length);
-};
+// ─── Screen-name generation (used by the social/Truecaller sign-in flows below) ────
 
 const randomDigitGenerator = async (digits) => {
     let word = parseInt(rand.generateDigits(digits));
@@ -56,10 +51,9 @@ const NameMaker = async (seed) => {
 };
 
 const NameChecker = async (displayNames) => {
-    const userAccounts = db.get().collection('userAccounts');
     for (const name of displayNames) {
-        const existing = await userAccounts.find({ screenName: name.toLowerCase() }).toArray();
-        if (!existing.length) return name.toLowerCase();
+        const existing = await User.findOne({ screenName: name.toLowerCase() });
+        if (!existing) return name.toLowerCase();
     }
     return false;
 };
@@ -74,185 +68,23 @@ const generateScreenName = async (seed) => {
     }
 };
 
-const persistToken = async ({ _id, mobile, screenName, socialId }) => {
-    const userTokensDB = db.get().collection('userTokens');
-    const token = jwt.sign(
-        { _id, screenName, mobile: mobile || '', socialId: socialId || '', playerStatus: '' },
-        process.env.JWT_ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.JWT_ACCESS_TOKEN_SECRET_EXPIRY }
-    );
-    const setObj = { updatedAt: +new Date(), token, screenName };
-    if (mobile) setObj.mobile = mobile;
-    if (socialId) setObj.socialId = socialId;
-    if (_id) {
-        await userTokensDB.updateOne({ _id }, { $set: setObj }, { upsert: true });
-    } else {
-        await userTokensDB.updateOne({ mobile }, { $set: setObj }, { upsert: true });
-    }
-    return token;
-};
-
-const sendSmsThroughKaleyra = async ({ mobile, otp, screenName, message, appType }) => {
-    const url = `https://cloud-api.in.kaleyra.io/v1/${process.env.SMS_3RDP_ACCID}/messages?to=${mobile}&body=${message}&type=OTP&callback_profile_id=${screenName}&sender=${process.env.SMS_3RDP_SENDER}&template_id=${process.env.SMS_3RDP_TEMPLATE}`;
-    const { data } = await axios({
-        method: 'post',
-        url,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'api-key': process.env.SMS_3RDP_KEY },
-    });
-    if (!data) throw new Error('No response from Kaleyra');
-    if (data?.error?.body) throw new Error(data.error.body);
-    if (data.id) {
-        await insertOtpToDb({ mobile, session_id: data.id, source: 'Kaleyra', otp, appType });
-        return { otpSent: true, mobile };
-    }
-    throw new Error(data.message || 'Kaleyra error');
-};
-
-const insertOtpToDb = async ({ mobile, session_id, source, otp, appType }) => {
-    const otpDB = db.get().collection('otp');
-    const setFields = { session_id, source, otp, createdAt: new Date() };
-    if (appType) setFields.appType = appType;
-    await otpDB.updateOne(
-        { mobile },
-        { $set: setFields, $inc: { otpCount: 1 } },
-        { upsert: true }
-    );
-};
-
-// ─── Auth controllers ──────────────────────────────────────────────────────────
-
-exports.sendOtp = async (req, res) => {
-    try {
-        const { mobile, otp, whatsappFlag, appType } = req.body;
-        if (!mobile) return res.status(400).json({ success: false, message: messages.Invalid_Mobile });
-
-        // If otp is present in the same request, run verify flow directly
-        if (otp) {
-            req.body = { mobile, otp, whatsappFlag, appType };
-            return exports.verifyOtp(req, res);
-        }
-
-        const userAccountsDB = db.get().collection('userAccounts');
-        const otpDB = db.get().collection('otp');
-        const configsDB = db.get().collection('configs');
-
-        const userAccountsData = await userAccountsDB.findOne({ mobile });
-        const mobileOtpDetails = await otpDB.findOne({ mobile });
-        const configs = await configsDB.findOne({ _id: 'otp', type: 'settings' });
-
-        if (mobileOtpDetails?.otpCount && mobileOtpDetails.otpCount >= 3) {
-            return res.json({ success: false, message: messages.OTP_COUNT });
-        }
-
-        const screenName = userAccountsData?.screenName || await generateScreenName(mobile);
-        let message = configs?.message || 'Hello user, OTP for logging into realistan.in is replaceOtp. This will expire in 15 mins. Please do not share OTP - Realistan Technology. replaceHash';
-        const hash = configs?.hash || 'sC325toDAan';
-        const generatedOtp = (process.env.NODE_ENV !== 'production') ? '123456' : generateOTP(6);
-        message = message.replace(/replaceHash/g, hash).replace(/replaceOtp/g, generatedOtp);
-
-        if (configs?.sendOtp) {
-            await sendSmsThroughKaleyra({ mobile, otp: generatedOtp, screenName, message, appType });
-        } else {
-            await insertOtpToDb({ mobile, session_id: 'self', source: 'not-sent', otp: generatedOtp, appType });
-        }
-        await otpDB.deleteOne({ mobile: `${mobile}-verification` });
-
-        return res.json({ success: true, message: 'OTP sent successfully!' });
-    } catch (error) {
-        console.error('sendOtp error:', error);
-        return res.status(400).json({ success: false, message: error.message || String(error) });
-    }
-};
-
-exports.verifyOtp = async (req, res) => {
-    try {
-        const { mobile, otp, whatsappFlag, appType } = req.body;
-        if (!mobile) return res.status(400).json({ success: false, message: messages.Invalid_Mobile });
-        if (!otp) return res.status(400).json({ success: false, message: messages.Invalid_OTP });
-        if (otp.length < 6) return res.status(400).json({ success: false, message: messages.Invalid_OTP });
-
-        const otpDB = db.get().collection('otp');
-        const userAccountsDB = db.get().collection('userAccounts');
-
-        const mobileOtpDetails = await otpDB.findOne({ mobile });
-        const mobileOtpVerification = await otpDB.findOne({ mobile: `${mobile}-verification` });
-
-        if (mobileOtpVerification?.verifyCount > 3) {
-            return res.status(400).json({ success: false, message: messages.OTP_VERIFICATION_COUNT });
-        }
-        await otpDB.updateOne({ mobile: `${mobile}-verification` }, { $inc: { verifyCount: 1 } }, { upsert: true });
-
-        if (!mobileOtpDetails?.otp || mobileOtpDetails.otp !== otp) {
-            return res.status(400).json({ success: false, message: messages.OTP_MISSMATCH });
-        }
-
-        const userAccountsData = await userAccountsDB.findOne({ mobile });
-        if (userAccountsData?.isDeleted) {
-            return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
-        }
-        const screenName = userAccountsData?.screenName || await generateScreenName(mobile);
-
-        const setObj = { updatedAt: +new Date(), loginType: 'mobile', whatsappFlag: whatsappFlag || false };
-        if (!userAccountsData?.screenName) setObj.screenName = screenName;
-        if (!userAccountsData?.createdAt) setObj.createdAt = +new Date();
-        if (userAccountsData?.whatsappFlag === undefined || userAccountsData?.whatsappFlag === false) {
-            setObj.whatsappFlag = whatsappFlag || false;
-        }
-        // Store the app source (set once; don't overwrite if user already has one)
-        if (appType && !userAccountsData?.appType) setObj.appType = appType;
-
-        await userAccountsDB.updateOne({ mobile }, { $set: setObj }, { upsert: true });
-        const updatedUser = await userAccountsDB.findOne({ mobile });
-        await otpDB.deleteOne({ mobile: `${mobile}-verification` });
-
-        const userId = userAccountsData?._id || updatedUser?._id || 'not-generated-yet';
-        const token = await persistToken({ _id: userId, mobile, screenName });
-
-        setAuthCookie(res, token);
-        return res.json({
-            success: true,
-            message: 'Login successful!',
-            signup: !userAccountsData,
-            mobile,
-            screenName,
-            token,
-        });
-    } catch (error) {
-        console.error('verifyOtp error:', error);
-        return res.status(400).json({ success: false, message: error.message || String(error) });
-    }
-};
+// ─── Profile ─────────────────────────────────────────────────────────────────
 
 exports.getProfile = async (req, res) => {
     try {
-        const decoded = req.user;
-        const userAccountsDB = db.get().collection('userAccounts');
-        let userResponse;
-
-        if (decoded?.mobile) {
-            userResponse = await userAccountsDB.findOne({ mobile: decoded.mobile });
-        } else if (decoded?.socialId) {
-            userResponse = await userAccountsDB.findOne({ socialId: decoded.socialId });
-        } else {
-            userResponse = await userAccountsDB.findOne({ _id: ObjectID(decoded._id) });
-        }
-
-        if (!userResponse) {
+        const account = await User.findById(req.user?._id || req.user?.id);
+        if (!account) {
             return res.status(400).json({ success: false, message: 'User not found' });
         }
 
-        const profile = { ...userResponse };
+        const profile = account.toObject();
+        profile.mobile = profile.phone; // legacy field name some clients still read
         delete profile.updatedAt;
-        delete profile.createdAt;
         delete profile.loginType;
-        delete profile.device_id;
-        delete profile.displayName;
-        delete profile.googleId;
-        delete profile.googleIdEmail;
         delete profile.socialIdType;
         delete profile.socialId;
-        delete profile.migratedUser;
         delete profile.socialName;
+        delete profile.__v;
 
         return res.json({ success: true, message: 'Profile fetched successfully!', data: profile });
     } catch (error) {
@@ -263,37 +95,22 @@ exports.getProfile = async (req, res) => {
 
 exports.updateUserDetails = async (req, res) => {
     try {
-        const decoded = req.user;
         const { email, mobile: bodyMobile, whatsappFlag, name } = req.body;
 
-        const userAccountsDB = db.get().collection('userAccounts');
-        let userResponse;
-
-        if (decoded?.mobile) {
-            userResponse = await userAccountsDB.findOne({ mobile: decoded.mobile });
-        } else if (decoded?.socialId) {
-            userResponse = await userAccountsDB.findOne({ socialId: decoded.socialId });
-        } else {
-            userResponse = await userAccountsDB.findOne({ _id: ObjectID(decoded._id) });
-        }
-
-        if (!userResponse) {
+        const account = await User.findById(req.user?._id || req.user?.id);
+        if (!account) {
             return res.status(400).json({ success: false, message: 'User not found' });
         }
 
-        const setObj = { updatedAt: +new Date() };
-        if (name && typeof name === 'string' && name.trim()) setObj.screenName = name.trim();
-        if (email && userResponse?.email === undefined) setObj.email = email;
-        if (bodyMobile && userResponse?.mobile === undefined) setObj.mobile = bodyMobile;
-        if (whatsappFlag === true || whatsappFlag === false) setObj.whatsappFlag = whatsappFlag;
-
-        if (decoded?.mobile) {
-            await userAccountsDB.updateOne({ mobile: decoded.mobile }, { $set: setObj });
-        } else if (decoded?.socialId) {
-            await userAccountsDB.updateOne({ socialId: decoded.socialId }, { $set: setObj });
-        } else {
-            await userAccountsDB.updateOne({ _id: ObjectID(decoded._id) }, { $set: setObj });
+        if (name && typeof name === 'string' && name.trim()) {
+            account.screenName = name.trim();
+            account.name = name.trim();
         }
+        if (email && !account.email) account.email = email;
+        if (bodyMobile && !account.phone) account.phone = bodyMobile;
+        if (whatsappFlag === true || whatsappFlag === false) account.whatsappFlag = whatsappFlag;
+
+        await account.save();
 
         return res.json({ success: true, message: 'Updated successfully!' });
     } catch (error) {
@@ -304,38 +121,30 @@ exports.updateUserDetails = async (req, res) => {
 
 exports.deleteAccount = async (req, res) => {
     try {
-        const decoded = req.user;
-        const userAccountsDB = db.get().collection('userAccounts');
-        const userTokensDB = db.get().collection('userTokens');
-
-        const findQuery = decoded?.mobile
-            ? { mobile: decoded.mobile }
-            : decoded?.socialId
-                ? { socialId: decoded.socialId }
-                : { _id: ObjectID(decoded._id) };
-
-        const userResponse = await userAccountsDB.findOne(findQuery);
-        if (!userResponse) {
+        const account = await User.findById(req.user?._id || req.user?.id);
+        if (!account) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
-        if (userResponse.isDeleted) {
+        if (account.isDeleted) {
             return res.status(400).json({ success: false, message: 'Account already deleted' });
         }
 
-        // Soft-delete + scrub PII. Keeps the document (and its `mobile`/`socialId`) so a future
-        // login with the same identifier can be recognised and blocked by the isDeleted checks in
-        // verifyOtp / loginBySocial / loginByTruecaller, rather than silently resurrecting the account.
-        await userAccountsDB.updateOne(findQuery, {
-            $set: { isDeleted: true, deletedAt: +new Date(), screenName: 'Deleted User', whatsappFlag: false },
-            $unset: { email: '', socialName: '', device_id: '', savedProperties: '' },
-        });
-
-        // Drop the persisted refresh/session record — hygiene only, the JWT itself stays valid
-        // until it naturally expires since auth is stateless (see src/utils/jwt.js verifyToken).
-        const tokenLookups = [{ _id: userResponse._id }];
-        if (userResponse.mobile) tokenLookups.push({ mobile: userResponse.mobile });
-        if (userResponse.socialId) tokenLookups.push({ socialId: userResponse.socialId });
-        await userTokensDB.deleteMany({ $or: tokenLookups });
+        // Soft-delete + scrub PII. Same account/collection serveease's own delete-account
+        // endpoint operates on — there's one identity now, so deleting it from either
+        // product deletes it everywhere.
+        account.isDeleted = true;
+        account.deletedAt = new Date();
+        account.isActive = false;
+        account.name = 'Deleted User';
+        account.screenName = 'Deleted User';
+        account.email = undefined;
+        account.socialName = undefined;
+        account.savedProperties = [];
+        account.profileImage = null;
+        account.addresses = [];
+        account.fcmToken = null;
+        account.pushSubscription = null;
+        await account.save();
 
         res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
 
@@ -346,7 +155,7 @@ exports.deleteAccount = async (req, res) => {
     }
 };
 
-// ─── Social login helpers ──────────────────────────────────────────────────────
+// ─── Social login ──────────────────────────────────────────────────────────────
 
 const socialLoginByGoogle = async ({ platform, idToken }) => {
     const iosClient = new OAuth2Client(process.env.IOS_CLIENT_ID);
@@ -405,51 +214,50 @@ exports.loginBySocial = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Social login failed' });
         }
 
-        const userAccountsDB = db.get().collection('userAccounts');
-        let userAccountsData = await userAccountsDB.findOne({ socialId: socialData.socialId });
-        if (userAccountsData?.isDeleted) {
+        let account = await User.findOne({ socialId: socialData.socialId });
+        if (account?.isDeleted) {
             return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
         }
 
-        const screenName = userAccountsData?.screenName
-            || await generateScreenName(socialData.name || socialData.email || socialData.socialId);
+        const isNew = !account;
+        if (!account) {
+            const screenName = (await generateScreenName(socialData.name || socialData.email || socialData.socialId)) || 'User';
+            account = await User.create({
+                name: socialData.name || screenName,
+                screenName,
+                socialId: socialData.socialId,
+                socialIdType: socialData.socialIdType,
+                socialName: socialData.name || null,
+                email: socialData.email || undefined,
+                loginType: 'social',
+                whatsappFlag: whatsappFlag || false,
+            });
+        } else {
+            account.whatsappFlag = whatsappFlag || false;
+            if (socialData.email && !account.email) account.email = socialData.email;
+            await account.save();
+        }
 
-        const setObj = {
-            updatedAt: +new Date(),
-            loginType: 'social',
-            socialIdType: socialData.socialIdType,
-            whatsappFlag: whatsappFlag || false,
-        };
-        if (!userAccountsData?.screenName) setObj.screenName = screenName;
-        if (!userAccountsData?.createdAt) setObj.createdAt = +new Date();
-        if (socialData.email) setObj.email = socialData.email;
-        if (socialData.name) setObj.socialName = socialData.name;
+        const screenName = account.screenName || account.name;
+        const tokens = signAuthTokens({ id: account._id.toString(), phone: account.phone, role: 'customer', screenName });
 
-        await userAccountsDB.updateOne({ socialId: socialData.socialId }, { $set: setObj }, { upsert: true });
-
-        if (!userAccountsData) userAccountsData = await userAccountsDB.findOne({ socialId: socialData.socialId });
-
-        const token = await persistToken({
-            _id: userAccountsData._id,
-            mobile: '',
-            screenName,
-            socialId: socialData.socialId,
-        });
-
-        setAuthCookie(res, token);
+        setAuthCookie(res, tokens.access);
         return res.json({
             success: true,
             message: 'Login successful!',
-            signup: !userAccountsData,
-            email: socialData.email,
+            signup: isNew,
+            email: account.email,
             screenName,
-            token,
+            token: tokens.access,
+            tokens,
         });
     } catch (error) {
         console.error('loginBySocial error:', error);
         return res.status(400).json({ success: false, message: error.message || String(error) });
     }
 };
+
+// ─── Truecaller login ──────────────────────────────────────────────────────────
 
 const truecallerGetToken = async ({ code, code_verifier }) => {
     const params = new URLSearchParams({
@@ -483,30 +291,32 @@ exports.loginByTruecaller = async (req, res) => {
         }
 
         const mobile = response.phone_number.at(0) !== '+' ? '+' + response.phone_number : response.phone_number;
-        const userAccountsDB = db.get().collection('userAccounts');
-        let userAccountsData = await userAccountsDB.findOne({ mobile });
-        if (userAccountsData?.isDeleted) {
+        let account = await User.findOne({ phone: mobile });
+        if (account?.isDeleted) {
             return res.status(403).json({ success: false, message: 'This account has been deleted. Please contact support if this was a mistake.' });
         }
 
-        const screenName = userAccountsData?.screenName || await generateScreenName(mobile);
-        const setObj = { updatedAt: +new Date(), loginType: 'truecaller', whatsappFlag: whatsappFlag || false };
-        if (!userAccountsData?.screenName) setObj.screenName = screenName;
-        if (!userAccountsData?.createdAt) setObj.createdAt = +new Date();
+        const isNew = !account;
+        if (!account) {
+            const screenName = (await generateScreenName(mobile)) || 'User';
+            account = await User.create({ name: screenName, screenName, phone: mobile, loginType: 'truecaller', whatsappFlag: whatsappFlag || false });
+        } else {
+            account.whatsappFlag = whatsappFlag || false;
+            await account.save();
+        }
 
-        await userAccountsDB.updateOne({ mobile }, { $set: setObj }, { upsert: true });
-        if (!userAccountsData) userAccountsData = await userAccountsDB.findOne({ mobile });
+        const screenName = account.screenName || account.name;
+        const tokens = signAuthTokens({ id: account._id.toString(), phone: mobile, role: 'customer', screenName });
 
-        const token = await persistToken({ _id: userAccountsData._id, mobile, screenName });
-
-        setAuthCookie(res, token);
+        setAuthCookie(res, tokens.access);
         return res.json({
             success: true,
             message: 'Login successful!',
-            signup: !userAccountsData,
+            signup: isNew,
             mobile,
             screenName,
-            token,
+            token: tokens.access,
+            tokens,
         });
     } catch (error) {
         console.error('loginByTruecaller error:', error);

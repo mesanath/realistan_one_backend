@@ -35,9 +35,10 @@
   "item": [
     {
       "name": "Unified Auth",
+      "description": "The one login system for realestate and serveease \u2014 same OTP, same phone identity, same JWT. `role` is optional and defaults to \"customer\" (also accepts \"agent\" or \"admin\", serveease-only). No `type` field needed anymore.",
       "item": [
         {
-          "name": "Send OTP \u2014 Realestate",
+          "name": "Send OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -60,17 +61,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"realestate\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\"\n}",
+              "raw": "{\n  \"countryCode\": \"91\",\n  \"phone\": \"9591972808\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Returns `devOtp` in the response outside production \u2014 the OTP is the hardcoded 123456 in development/staging/local, a random 6-digit code in production."
           }
         },
         {
-          "name": "Verify OTP \u2014 Realestate",
+          "name": "Verify OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -93,116 +95,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"realestate\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"otp\": \"123456\"\n}",
+              "raw": "{\n  \"countryCode\": \"91\",\n  \"phone\": \"9591972808\",\n  \"otp\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
-          }
-        },
-        {
-          "name": "Send OTP \u2014 ServeEase Customer",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{url}}/api/v1/auth/send-otp",
-              "host": [
-                "{{url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "send-otp"
-              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"role\": \"customer\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
+            "description": "Response: `{ success, isNew, tokens: { access, refresh }, token, mobile, screenName, user }`. `token` is a flat alias for `tokens.access` kept for older clients."
           }
         },
         {
-          "name": "Send OTP \u2014 ServeEase Agent",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{url}}/api/v1/auth/send-otp",
-              "host": [
-                "{{url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "send-otp"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"role\": \"agent\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Verify OTP \u2014 ServeEase",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{url}}/api/v1/auth/verify-otp",
-              "host": [
-                "{{url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "verify-otp"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"serveease\",\n  \"mobile\": \"9591972808\",\n  \"countryCode\": \"+91\",\n  \"otp\": \"123456\",\n  \"role\": \"customer\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Refresh Token (ServeEase)",
+          "name": "Refresh Token",
           "request": {
             "method": "POST",
             "header": [
@@ -413,75 +317,6 @@
         {
           "name": "Auth (legacy)",
           "item": [
-            {
-              "name": "Send OTP",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{url}}/api/v1/realestate/auth/loginbymobile",
-                  "host": [
-                    "{{url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "realestate",
-                    "auth",
-                    "loginbymobile"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mobile\": \"9591972808\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              }
-            },
-            {
-              "name": "Verify OTP",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{url}}/api/v1/realestate/auth/loginbymobile/verify",
-                  "host": [
-                    "{{url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "realestate",
-                    "auth",
-                    "loginbymobile",
-                    "verify"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"otp\": \"123456\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              }
-            },
             {
               "name": "Get Profile",
               "request": {
@@ -1523,108 +1358,6 @@
         {
           "name": "Auth (legacy)",
           "item": [
-            {
-              "name": "Send OTP",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{url}}/api/v1/serveease/auth/send-otp",
-                  "host": [
-                    "{{url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "serveease",
-                    "auth",
-                    "send-otp"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"role\": \"customer\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              }
-            },
-            {
-              "name": "Verify OTP",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{url}}/api/v1/serveease/auth/verify-otp",
-                  "host": [
-                    "{{url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "serveease",
-                    "auth",
-                    "verify-otp"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mobile\": \"9591972808\",\n  \"otp\": \"123456\",\n  \"role\": \"customer\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              }
-            },
-            {
-              "name": "Refresh Token",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{url}}/api/v1/serveease/auth/refresh",
-                  "host": [
-                    "{{url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "serveease",
-                    "auth",
-                    "refresh"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"refreshToken\": \"{{se_refresh_token}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              }
-            },
             {
               "name": "Get Me",
               "request": {

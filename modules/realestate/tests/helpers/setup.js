@@ -2,6 +2,8 @@
 require('dotenv').config();
 const request = require('supertest');
 const { db } = require('../../../../src/utils/dbs');
+const User = require('../../../../src/models/User');
+const { storeOtp } = require('../../../../src/auth/otpEngine');
 
 const TEST_MOBILE = '+919000000001';
 const TEST_OTP    = '654321';
@@ -26,21 +28,20 @@ async function ensureReady() {
 }
 
 // ── Auth helpers ─────────────────────────────────────────────────────────────
+// Writes the OTP directly into the shared login system's store, bypassing the
+// send-otp endpoint (SMS dispatch + fraud/rate-limit checks) — same approach the
+// old helper used against the Mongo `otp` collection, now against otpEngine's store.
 async function seedOtp() {
     await ensureReady();
-    await db.get().collection('otp').updateOne(
-        { mobile: TEST_MOBILE },
-        { $set: { mobile: TEST_MOBILE, otp: TEST_OTP, session_id: 'test', source: 'test', createdAt: new Date(), otpCount: 1 } },
-        { upsert: true }
-    );
+    await storeOtp(TEST_MOBILE, TEST_OTP);
 }
 
 async function getAuthToken() {
     await seedOtp();
     const res = await request(getApp())
-        .post('/api/v1/realestate/auth/loginbymobile/verify')
-        .send({ mobile: TEST_MOBILE, otp: TEST_OTP, whatsappFlag: false });
-    return res.body.token;
+        .post('/api/v1/auth/verify-otp')
+        .send({ mobile: TEST_MOBILE, otp: TEST_OTP });
+    return res.body.tokens?.access || res.body.token;
 }
 
 // ── Property helpers ──────────────────────────────────────────────────────────
@@ -80,11 +81,7 @@ async function createTestProperty(token, overrides = {}) {
 // ── Teardown helpers ──────────────────────────────────────────────────────────
 async function cleanupTestUser() {
     await ensureReady();
-    const database = db.get();
-    await database.collection('otp').deleteMany({ mobile: TEST_MOBILE });
-    await database.collection('otp').deleteMany({ mobile: `${TEST_MOBILE}-verification` });
-    await database.collection('userAccounts').deleteMany({ mobile: TEST_MOBILE });
-    await database.collection('userTokens').deleteMany({ mobile: TEST_MOBILE });
+    await User.deleteMany({ phone: TEST_MOBILE });
 }
 
 async function cleanupTestProperties() {
@@ -100,10 +97,7 @@ async function cleanupContactRequests(propertyID) {
 
 async function clearShortlist() {
     await ensureReady();
-    await db.get().collection('userAccounts').updateMany(
-        { mobile: TEST_MOBILE },
-        { $set: { savedProperties: [] } }
-    );
+    await User.updateMany({ phone: TEST_MOBILE }, { $set: { savedProperties: [] } });
 }
 
 module.exports = {
