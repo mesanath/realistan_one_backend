@@ -51,6 +51,7 @@ const serveeaseRecommenderRoutes  = require('../modules/serveease/routes/recomme
 const serveeaseSubscriptionRoutes = require('../modules/serveease/routes/subscription.routes');
 const serveeaseCorporateRoutes    = require('../modules/serveease/routes/corporate.routes');
 const serveeaseBundleRoutes       = require('../modules/serveease/routes/bundle.routes');
+const serveeaseMapsRoutes         = require('../modules/serveease/routes/maps.routes');
 
 const app = express();
 
@@ -120,6 +121,7 @@ app.use('/api/v1/serveease/recommendations',   serveeaseRecommenderRoutes);
 app.use('/api/v1/serveease/subscriptions',     serveeaseSubscriptionRoutes);
 app.use('/api/v1/serveease/corporate-bookings', serveeaseCorporateRoutes);
 app.use('/api/v1/serveease/services/:id/bundles', serveeaseBundleRoutes);
+app.use('/api/v1/serveease/maps',              serveeaseMapsRoutes);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {

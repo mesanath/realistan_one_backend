@@ -3221,6 +3221,106 @@
           ]
         },
         {
+          "name": "Maps",
+          "description": "Server-side Google Places proxy — GOOGLE_MAPS_API_KEY never leaves the backend. Used by clients (chiefly the RN app) that can't safely embed the key.",
+          "item": [
+            {
+              "name": "Autocomplete",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/maps/autocomplete?input=Koramangala",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "maps",
+                    "autocomplete"
+                  ],
+                  "query": [
+                    {
+                      "key": "input",
+                      "value": "Koramangala"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Place Details",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/maps/place-details?placeId=<place_id>",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "maps",
+                    "place-details"
+                  ],
+                  "query": [
+                    {
+                      "key": "placeId",
+                      "value": "<place_id>"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Directions URL",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{se_access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{url}}/api/v1/serveease/maps/directions-url?destLat=12.93&destLng=77.61&originLat=12.97&originLng=77.59",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "serveease",
+                    "maps",
+                    "directions-url"
+                  ],
+                  "query": [
+                    { "key": "destLat", "value": "12.93" },
+                    { "key": "destLng", "value": "77.61" },
+                    { "key": "originLat", "value": "12.97" },
+                    { "key": "originLng", "value": "77.59" }
+                  ]
+                },
+                "description": "originLat/originLng optional — omit to let Google Maps use the opener's live GPS location as the starting point."
+              }
+            }
+          ]
+        },
+        {
           "name": "Disputes",
           "item": [
             {
