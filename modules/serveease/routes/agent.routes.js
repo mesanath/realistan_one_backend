@@ -1,11 +1,14 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Agent = require('../models/Agent');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
+const AgentSkillRequest = require('../models/AgentSkillRequest');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { agentActionLimit } = require('../../../src/middleware/rateLimit.middleware');
-const { updateAgentProfileRules, applyLeaveRules } = require('../validators/validators');
+const { updateAgentProfileRules, applyLeaveRules, agentLoginRules, createSkillRequestRules } = require('../validators/validators');
+const { signAuthTokens } = require('../../../src/utils/token');
 
 // ─── Public: available agents for customer to browse ─────────────────────────
 // GET /api/v1/agents/available?city=&serviceId=&date=
@@ -46,6 +49,50 @@ router.get('/available', async (req, res) => {
   }
 });
 
+// ─── Public: username/password login (admin-issued credentials, e.g. agent mobile app) ───────
+// POST /api/v1/agents/login — additional to phone+OTP login (unifiedAuth.controller.js), not a
+// replacement. Issues the exact same JWT shape (signAuthTokens) so every existing authenticate/
+// authorize('agent') route works unchanged regardless of which login path produced the token.
+router.post('/login', agentLoginRules, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const agent = await Agent.findOne({ username: String(username).toLowerCase().trim() }).select('+passwordHash');
+    if (!agent || !agent.passwordHash) {
+      return res.status(401).json({ success: false, message: 'Invalid username or password' });
+    }
+
+    const match = await bcrypt.compare(password, agent.passwordHash);
+    if (!match) return res.status(401).json({ success: false, message: 'Invalid username or password' });
+
+    if (!agent.isActive) {
+      return res.status(403).json({ success: false, message: 'This account has been deactivated. Please contact support.' });
+    }
+
+    const tokens = signAuthTokens({ id: agent._id.toString(), phone: agent.phone, role: 'agent', screenName: agent.name });
+
+    return res.json({
+      success: true,
+      message: 'Login successful!',
+      tokens,
+      token: tokens.access,
+      mobile: agent.phone,
+      screenName: agent.name,
+      user: {
+        _id: agent._id,
+        id: agent._id,
+        name: agent.name,
+        screenName: agent.name,
+        phone: agent.phone,
+        mobile: agent.phone,
+        email: agent.email,
+        role: 'agent',
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ─── All routes below require authentication ──────────────────────────────────
 router.use(authenticate);
 
@@ -72,6 +119,7 @@ router.get('/my-jobs', authorize('agent'), async (req, res) => {
     const bookings = await Booking.find(filter)
       .populate('serviceId', 'name images')
       .populate('customerId', 'name phone')
+      .populate({ path: 'review', select: 'rating comment tags createdAt' })
       .sort({ scheduledAt: -1 });
     res.json({ success: true, data: bookings });
   } catch (err) {
@@ -130,6 +178,68 @@ router.patch('/status', authorize('agent'), async (req, res) => {
     res.json({ success: true, status });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/v1/agents/dashboard-stats — lightweight counts for a mobile dashboard header,
+// avoids fanning out to /my-jobs + /earnings just to show a couple of numbers.
+router.get('/dashboard-stats', authorize('agent'), async (req, res) => {
+  try {
+    const [completedCount, pendingCount, agent, todayEarningsData] = await Promise.all([
+      Booking.countDocuments({ agentId: req.user.id, status: 'completed' }),
+      Booking.countDocuments({ agentId: req.user.id, status: { $in: ['confirmed', 'assigned', 'en_route', 'arrived', 'in_progress'] } }),
+      Agent.findById(req.user.id, 'rating ratingCount'),
+      buildEarningsData(req.user.id, '1d'),
+    ]);
+    res.json({
+      success: true,
+      data: {
+        completedCount,
+        pendingCount,
+        todayEarnings: todayEarningsData.totalEarnings,
+        rating: agent?.rating || 0,
+        ratingCount: agent?.ratingCount || 0,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─── Skill Requests ───────────────────────────────────────────────────────────
+// Formal, admin-approved alternative to silently overwriting Agent.skills via PATCH /profile.
+
+// GET /api/v1/agents/skill-requests — own requests
+router.get('/skill-requests', authorize('agent'), async (req, res) => {
+  try {
+    const requests = await AgentSkillRequest.find({ agentId: req.user.id })
+      .populate('categoryId', 'name slug icon')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data: requests });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/v1/agents/skill-requests — request a new category be added to Agent.skills
+router.post('/skill-requests', authorize('agent'), createSkillRequestRules, async (req, res) => {
+  try {
+    const { categoryId, note } = req.body;
+
+    const agent = await Agent.findById(req.user.id, 'skills');
+    if (agent?.skills?.some((s) => s.toString() === categoryId)) {
+      return res.status(400).json({ success: false, message: 'This service is already one of your skills' });
+    }
+
+    const existing = await AgentSkillRequest.findOne({ agentId: req.user.id, categoryId, status: { $ne: 'rejected' } });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'You already have a request for this service' });
+    }
+
+    const request = await AgentSkillRequest.create({ agentId: req.user.id, categoryId, note });
+    res.status(201).json({ success: true, data: request });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
   }
 });
 

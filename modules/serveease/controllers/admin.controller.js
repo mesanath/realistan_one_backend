@@ -1,9 +1,11 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Agent = require('../models/Agent');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const AuditLog = require('../models/AuditLog');
 const AgentChangeRequest = require('../models/AgentChangeRequest');
+const AgentSkillRequest = require('../models/AgentSkillRequest');
 const Coupon = require('../models/Coupon');
 const Zone = require('../models/Zone');
 const Payment = require('../models/Payment');
@@ -246,13 +248,22 @@ exports.getAgentById = async (req, res) => {
 // POST /api/v1/admin/agents
 exports.createAgent = async (req, res) => {
   try {
-    const agent = await Agent.create(req.body);
+    const payload = { ...req.body };
+    // Optional admin-issued login credentials — hash before create, never store plaintext.
+    if (payload.password) {
+      payload.passwordHash = await bcrypt.hash(payload.password, 10);
+      delete payload.password;
+    }
+    const agent = await Agent.create(payload);
     await AuditLog.create({
       type: 'admin_action', userId: req.user.id, role: 'admin',
       meta: { action: 'create_agent', agentId: agent._id },
     });
     res.status(201).json({ success: true, data: agent });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.username) {
+      return res.status(409).json({ success: false, message: 'That username is already taken' });
+    }
     res.status(400).json({ success: false, message: err.message });
   }
 };
@@ -260,9 +271,13 @@ exports.createAgent = async (req, res) => {
 // PATCH /api/v1/admin/agents/:id
 exports.updateAgent = async (req, res) => {
   try {
-    const allowed = ['name', 'email', 'city', 'bio', 'skills', 'isApproved', 'isActive', 'bankDetails', 'zoneId'];
+    const allowed = ['name', 'email', 'city', 'bio', 'skills', 'isApproved', 'isActive', 'bankDetails', 'zoneId', 'username'];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
+    // password isn't a schema field itself — hash it into passwordHash separately from the allow-list above.
+    if (req.body.password) {
+      updates.passwordHash = await bcrypt.hash(req.body.password, 10);
+    }
 
     const agent = await Agent.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true, runValidators: true })
       .populate('skills', 'name slug');
@@ -270,10 +285,42 @@ exports.updateAgent = async (req, res) => {
 
     await AuditLog.create({
       type: 'admin_action', userId: req.user.id, role: 'admin',
-      meta: { action: 'update_agent', agentId: req.params.id, changes: updates },
+      meta: { action: 'update_agent', agentId: req.params.id, changes: { ...updates, passwordHash: undefined, passwordChanged: !!updates.passwordHash } },
     });
     res.json({ success: true, data: agent });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.username) {
+      return res.status(409).json({ success: false, message: 'That username is already taken' });
+    }
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// PATCH /api/v1/admin/agents/:id/credentials — dedicated credential reset, no need to
+// resubmit the whole profile-edit form.
+exports.setAgentCredentials = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username && !password) {
+      return res.status(400).json({ success: false, message: 'username or password is required' });
+    }
+
+    const updates = {};
+    if (username) updates.username = username;
+    if (password) updates.passwordHash = await bcrypt.hash(password, 10);
+
+    const agent = await Agent.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true, runValidators: true });
+    if (!agent) return res.status(404).json({ success: false, message: 'Agent not found' });
+
+    await AuditLog.create({
+      type: 'admin_action', userId: req.user.id, role: 'admin',
+      meta: { action: 'set_agent_credentials', agentId: req.params.id, usernameChanged: !!username, passwordChanged: !!password },
+    });
+    res.json({ success: true, message: 'Credentials updated', data: { username: agent.username } });
+  } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.username) {
+      return res.status(409).json({ success: false, message: 'That username is already taken' });
+    }
     res.status(400).json({ success: false, message: err.message });
   }
 };
@@ -588,6 +635,65 @@ exports.reviewAgentChangeRequest = async (req, res) => {
       await AuditLog.create({
         type: 'admin_action', bookingId: request.bookingId, userId: req.user.id, role: 'admin',
         meta: { action: 'reject_agent_change', requestId: request._id },
+      });
+    }
+
+    res.json({ success: true, message: `Request ${action}d` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─── Agent Skill Requests ─────────────────────────────────────────────────────
+
+// GET /api/v1/admin/skill-requests
+exports.getSkillRequests = async (req, res) => {
+  try {
+    const { status = 'pending', page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [requests, total] = await Promise.all([
+      AgentSkillRequest.find(filter)
+        .populate('agentId', 'name phone city')
+        .populate('categoryId', 'name slug icon')
+        .populate('reviewedBy', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      AgentSkillRequest.countDocuments(filter),
+    ]);
+
+    res.json({ success: true, data: requests, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PATCH /api/v1/admin/skill-requests/:id
+exports.reviewSkillRequest = async (req, res) => {
+  try {
+    const { action, note } = req.body;
+
+    const request = await AgentSkillRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
+    if (request.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Request already reviewed' });
+    }
+
+    if (action === 'approve') {
+      await Agent.findByIdAndUpdate(request.agentId, { $addToSet: { skills: request.categoryId } });
+      await request.updateOne({ status: 'approved', reviewedBy: req.user.id, reviewedAt: new Date() });
+      await AuditLog.create({
+        type: 'admin_action', userId: req.user.id, role: 'admin',
+        meta: { action: 'approve_skill_request', requestId: request._id, agentId: request.agentId, categoryId: request.categoryId },
+      });
+    } else {
+      await request.updateOne({ status: 'rejected', reviewedBy: req.user.id, reviewedAt: new Date() });
+      await AuditLog.create({
+        type: 'admin_action', userId: req.user.id, role: 'admin',
+        meta: { action: 'reject_skill_request', requestId: request._id, agentId: request.agentId, note },
       });
     }
 

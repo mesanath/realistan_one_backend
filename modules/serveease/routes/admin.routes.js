@@ -4,7 +4,7 @@ const subscriptionCtrl = require('../controllers/subscription.controller');
 const fraudCtrl = require('../controllers/admin.fraud.controller');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { adminMutationLimit } = require('../../../src/middleware/rateLimit.middleware');
-const { createAgentRules, updateAgentRules } = require('../validators/validators');
+const { createAgentRules, updateAgentRules, setAgentCredentialsRules, reviewSkillRequestRules } = require('../validators/validators');
 
 router.use(authenticate, authorize('admin'));
 
@@ -35,6 +35,11 @@ router.patch('/agents/:id', adminMutationLimit, updateAgentRules, ctrl.updateAge
 router.patch('/agents/:id/approve', adminMutationLimit, ctrl.approveAgent);
 router.patch('/agents/:id/toggle-active', adminMutationLimit, ctrl.toggleAgentActive);
 router.patch('/agents/:id/background-verify', adminMutationLimit, ctrl.toggleBackgroundVerify);
+router.patch('/agents/:id/credentials', adminMutationLimit, setAgentCredentialsRules, ctrl.setAgentCredentials);
+
+// Agent Skill Requests
+router.get('/skill-requests', ctrl.getSkillRequests);
+router.patch('/skill-requests/:id', adminMutationLimit, reviewSkillRequestRules, ctrl.reviewSkillRequest);
 
 // Analytics & Audit
 router.get('/audit', ctrl.getAuditLogs);

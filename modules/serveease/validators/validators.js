@@ -139,6 +139,18 @@ const updateAgentProfileRules = [
   validate,
 ];
 
+const agentLoginRules = [
+  body('username').trim().notEmpty().withMessage('username is required'),
+  body('password').notEmpty().withMessage('password is required'),
+  validate,
+];
+
+const createSkillRequestRules = [
+  body('categoryId').notEmpty().withMessage('categoryId is required').isMongoId().withMessage('categoryId must be a valid ID'),
+  body('note').optional().trim().isLength({ max: 500 }).withMessage('Note must be under 500 characters'),
+  validate,
+];
+
 const applyLeaveRules = [
   body('date')
     .notEmpty().withMessage('date is required')
@@ -188,6 +200,20 @@ const updateAgentRules = [
   validate,
 ];
 
+const setAgentCredentialsRules = [
+  param('id').isMongoId().withMessage('Agent ID must be valid'),
+  body('username').optional().trim().isLength({ min: 3, max: 30 }).withMessage('Username must be 3-30 characters'),
+  body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  validate,
+];
+
+const reviewSkillRequestRules = [
+  param('id').isMongoId().withMessage('Request ID must be valid'),
+  body('action').isIn(['approve', 'reject']).withMessage('action must be approve or reject'),
+  body('note').optional().trim().isLength({ max: 500 }),
+  validate,
+];
+
 // ─── Payment ──────────────────────────────────────────────────────────────────
 
 const createPaymentOrderRules = [
@@ -212,10 +238,14 @@ module.exports = {
   cancelBookingRules,
   updateAgentProfileRules,
   applyLeaveRules,
+  agentLoginRules,
+  createSkillRequestRules,
   createServiceRules,
   updateServiceRules,
   createAgentRules,
   updateAgentRules,
+  setAgentCredentialsRules,
+  reviewSkillRequestRules,
   createPaymentOrderRules,
   verifyPaymentRules,
 };

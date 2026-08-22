@@ -39,6 +39,10 @@ const agentSchema = new mongoose.Schema({
   },
   fcmToken: { type: String, default: null },
   pushSubscription: { type: mongoose.Schema.Types.Mixed, default: null }, // Web Push subscription object
+  // Admin-issued username/password login (additional to phone+OTP, e.g. for the agent mobile app).
+  // sparse so existing OTP-only agents (username: undefined) never collide on a unique null index.
+  username: { type: String, unique: true, sparse: true, trim: true, lowercase: true },
+  passwordHash: { type: String, default: null, select: false },
   joinedAt: { type: Date, default: Date.now },
   leaves: [{
     date: { type: Date, required: true },
