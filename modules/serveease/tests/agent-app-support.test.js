@@ -5,6 +5,9 @@
  *   - Agent skill-request workflow (POST /agents/skill-requests, GET/PATCH /admin/skill-requests)
  *   - GET /agents/my-jobs populates `review`
  *   - GET /agents/dashboard-stats
+ *   - PATCH /agents/profile bankDetails validation (checkFalsy fix — a blank ifsc/accountNo used
+ *     to 400-reject the whole request; both the web agent portal and this app's RN Bank Details
+ *     tab send blank strings for untouched optional fields)
  *
  * Also asserts the existing OTP agent-login path (unifiedAuth.controller.js) is untouched.
  */
@@ -262,5 +265,43 @@ describe('GET /agents/my-jobs review populate + GET /agents/dashboard-stats', ()
     expect(res.body.data.completedCount).toBeGreaterThanOrEqual(1);
     expect(res.body.data.pendingCount).toBeGreaterThanOrEqual(1);
     expect(typeof res.body.data.todayEarnings).toBe('number');
+  });
+});
+
+// ─── PATCH /agents/profile bankDetails (checkFalsy regression) ────────────────
+
+describe('PATCH /agents/profile bankDetails validation', () => {
+  let agent, agentToken;
+
+  beforeAll(async () => {
+    agent = await Agent.create({ name: 'Bank Details Agent', phone: '+919833330041', gender: 'male', city: 'Bangalore' });
+    agentToken = jwt.sign({ id: agent._id.toString(), role: 'agent' }, process.env.JWT_SECRET);
+  });
+
+  it('accepts blank accountNo/ifsc/upi — a form field left untouched sends "", not undefined', async () => {
+    const res = await request(app)
+      .patch('/api/v1/serveease/agents/profile')
+      .set('Authorization', `Bearer ${agentToken}`)
+      .send({ bankDetails: { accountNo: '', ifsc: '', bankName: 'HDFC Bank', upi: '' } });
+    expect(res.status).toBe(200);
+    expect(res.body.data.bankDetails.bankName).toBe('HDFC Bank');
+  });
+
+  it('saves a real accountNo/ifsc (the field the app actually sends, not the old accountNumber)', async () => {
+    const res = await request(app)
+      .patch('/api/v1/serveease/agents/profile')
+      .set('Authorization', `Bearer ${agentToken}`)
+      .send({ bankDetails: { accountNo: '123456789012', ifsc: 'HDFC0001234', bankName: 'HDFC Bank', upi: 'agent@upi' } });
+    expect(res.status).toBe(200);
+    expect(res.body.data.bankDetails.accountNo).toBe('123456789012');
+    expect(res.body.data.bankDetails.ifsc).toBe('HDFC0001234');
+  });
+
+  it('still rejects a genuinely malformed (non-blank) ifsc', async () => {
+    const res = await request(app)
+      .patch('/api/v1/serveease/agents/profile')
+      .set('Authorization', `Bearer ${agentToken}`)
+      .send({ bankDetails: { ifsc: 'not-a-valid-ifsc' } });
+    expect(res.status).toBe(400);
   });
 });

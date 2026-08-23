@@ -129,12 +129,17 @@ const updateAgentProfileRules = [
   body('skills.*')
     .optional()
     .isMongoId().withMessage('Each skill must be a valid category ID'),
-  body('bankDetails.accountNumber')
-    .optional().trim()
+  // `checkFalsy: true` on both — the Agent schema's bankDetails fields are all optional and a
+  // form field left blank arrives here as `''`, not absent. Without checkFalsy, plain `.optional()`
+  // only skips genuinely-missing (undefined) fields, so an empty string still gets validated
+  // against `.isNumeric()`/the IFSC regex and fails — rejecting the whole PATCH /agents/profile
+  // request with a 400 any time an agent saves bank details one field at a time.
+  body('bankDetails.accountNo')
+    .optional({ checkFalsy: true }).trim()
     .isLength({ min: 9, max: 18 }).withMessage('Account number must be 9–18 digits')
     .isNumeric().withMessage('Account number must be numeric'),
   body('bankDetails.ifsc')
-    .optional().trim()
+    .optional({ checkFalsy: true }).trim()
     .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('IFSC code format is invalid'),
   validate,
 ];
