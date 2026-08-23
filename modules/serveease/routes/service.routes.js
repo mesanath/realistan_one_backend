@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/service.controller');
-const { getBundleSuggestionsHandler } = require('../controllers/bundle.controller');
+const { getBundleSuggestionsHandler, getFeaturedBundlesHandler } = require('../controllers/bundle.controller');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { adminMutationLimit } = require('../../../src/middleware/rateLimit.middleware');
 const { createServiceRules, updateServiceRules } = require('../validators/validators');
@@ -8,6 +8,8 @@ const { createServiceRules, updateServiceRules } = require('../validators/valida
 // Public
 router.get('/categories', ctrl.getCategories);
 router.get('/', ctrl.getServices);
+// Home-page combo deals — no anchor service needed (unlike /:id/bundles below)
+router.get('/bundles/featured', getFeaturedBundlesHandler);
 // Bundle suggestions — must come before generic /:id to avoid swallowing
 router.get('/:id/bundles', getBundleSuggestionsHandler);
 // Surge price check — EN9 (must be before /:id)

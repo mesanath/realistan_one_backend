@@ -123,19 +123,32 @@ const updateAgentProfileRules = [
   body('bio')
     .optional().trim()
     .isLength({ max: 500 }).withMessage('Bio must be under 500 characters'),
-  body('skills')
-    .optional()
-    .isArray().withMessage('skills must be an array'),
-  body('skills.*')
-    .optional()
-    .isMongoId().withMessage('Each skill must be a valid category ID'),
-  body('bankDetails.accountNumber')
-    .optional().trim()
+  // No `skills` rule here — the route no longer applies a `skills` field from this request (see
+  // agent.routes.js PATCH /profile), so validating its shape would just be dead code.
+  // `checkFalsy: true` on both — the Agent schema's bankDetails fields are all optional and a
+  // form field left blank arrives here as `''`, not absent. Without checkFalsy, plain `.optional()`
+  // only skips genuinely-missing (undefined) fields, so an empty string still gets validated
+  // against `.isNumeric()`/the IFSC regex and fails — rejecting the whole PATCH /agents/profile
+  // request with a 400 any time an agent saves bank details one field at a time.
+  body('bankDetails.accountNo')
+    .optional({ checkFalsy: true }).trim()
     .isLength({ min: 9, max: 18 }).withMessage('Account number must be 9–18 digits')
     .isNumeric().withMessage('Account number must be numeric'),
   body('bankDetails.ifsc')
-    .optional().trim()
+    .optional({ checkFalsy: true }).trim()
     .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('IFSC code format is invalid'),
+  validate,
+];
+
+const agentLoginRules = [
+  body('username').trim().notEmpty().withMessage('username is required'),
+  body('password').notEmpty().withMessage('password is required'),
+  validate,
+];
+
+const createSkillRequestRules = [
+  body('categoryId').notEmpty().withMessage('categoryId is required').isMongoId().withMessage('categoryId must be a valid ID'),
+  body('note').optional().trim().isLength({ max: 500 }).withMessage('Note must be under 500 characters'),
   validate,
 ];
 
@@ -188,6 +201,20 @@ const updateAgentRules = [
   validate,
 ];
 
+const setAgentCredentialsRules = [
+  param('id').isMongoId().withMessage('Agent ID must be valid'),
+  body('username').optional().trim().isLength({ min: 3, max: 30 }).withMessage('Username must be 3-30 characters'),
+  body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  validate,
+];
+
+const reviewSkillRequestRules = [
+  param('id').isMongoId().withMessage('Request ID must be valid'),
+  body('action').isIn(['approve', 'reject']).withMessage('action must be approve or reject'),
+  body('note').optional().trim().isLength({ max: 500 }),
+  validate,
+];
+
 // ─── Payment ──────────────────────────────────────────────────────────────────
 
 const createPaymentOrderRules = [
@@ -212,10 +239,14 @@ module.exports = {
   cancelBookingRules,
   updateAgentProfileRules,
   applyLeaveRules,
+  agentLoginRules,
+  createSkillRequestRules,
   createServiceRules,
   updateServiceRules,
   createAgentRules,
   updateAgentRules,
+  setAgentCredentialsRules,
+  reviewSkillRequestRules,
   createPaymentOrderRules,
   verifyPaymentRules,
 };

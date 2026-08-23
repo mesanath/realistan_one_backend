@@ -1,4 +1,4 @@
-const { getBundleSuggestions } = require('../services/bundle.service');
+const { getBundleSuggestions, getFeaturedBundleDeals } = require('../services/bundle.service');
 
 /**
  * GET /api/v1/services/:id/bundles
@@ -42,4 +42,18 @@ async function getBundleSuggestionsHandler(req, res, next) {
   }
 }
 
-module.exports = { getBundleSuggestionsHandler };
+/**
+ * GET /api/v1/services/bundles/featured
+ * Public — no auth required. Home-page "buy these together" combo deals, no anchor service needed.
+ */
+async function getFeaturedBundlesHandler(req, res, next) {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 4, 10);
+    const deals = await getFeaturedBundleDeals(limit);
+    res.json({ success: true, data: deals });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getBundleSuggestionsHandler, getFeaturedBundlesHandler };

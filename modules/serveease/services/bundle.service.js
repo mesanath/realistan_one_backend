@@ -131,4 +131,64 @@ async function getBundleSuggestions(serviceId) {
   return suggestions;
 }
 
-module.exports = { getBundleSuggestions, BUNDLE_RULES };
+/**
+ * Home-page-level combo deals — unlike getBundleSuggestions() above (which needs a specific
+ * "primary" service to suggest add-ons for, e.g. on a service detail page), this doesn't need any
+ * anchor service: it picks one representative primary + suggested service per BUNDLE_RULE (highest
+ * bookingCount, i.e. same "most popular first" ordering the rest of the home page already uses)
+ * and returns ready-to-render "buy these together, save X%" cards.
+ *
+ * @param {number} limit - max number of deals to return (one per rule, in BUNDLE_RULES order)
+ * @returns {Promise<Array<{ bundleLabel: string, discountPercent: number, primaryService: object,
+ *   suggestedService: object, combinedOriginalPrice: number, combinedDiscountedPrice: number, youSave: number }>>}
+ */
+async function getFeaturedBundleDeals(limit = 4) {
+  const allActive = await Service.find({ isActive: true })
+    .populate('categoryId', 'name slug')
+    .sort({ bookingCount: -1 })
+    .lean();
+
+  const deals = [];
+  const usedPrimaryIds = new Set();
+
+  for (const rule of BUNDLE_RULES) {
+    const primary = allActive.find(
+      (svc) => !usedPrimaryIds.has(svc._id.toString()) && serviceMatchesKeywords(svc, rule.primaryCategories)
+    );
+    if (!primary) continue;
+
+    const suggested = allActive.find(
+      (svc) => svc._id.toString() !== primary._id.toString() && serviceMatchesKeywords(svc, rule.suggestCategories)
+    );
+    if (!suggested) continue;
+
+    usedPrimaryIds.add(primary._id.toString());
+
+    const discountedSuggestedPrice = Math.round(suggested.basePrice * (1 - rule.discount / 100));
+    const combinedOriginalPrice = primary.basePrice + suggested.basePrice;
+    const combinedDiscountedPrice = primary.basePrice + discountedSuggestedPrice;
+
+    deals.push({
+      bundleLabel: rule.label,
+      discountPercent: rule.discount,
+      primaryService: {
+        _id: primary._id, name: primary.name, slug: primary.slug,
+        basePrice: primary.basePrice, category: primary.categoryId?.name || null,
+      },
+      suggestedService: {
+        _id: suggested._id, name: suggested.name, slug: suggested.slug,
+        basePrice: suggested.basePrice, discountedPrice: discountedSuggestedPrice,
+        category: suggested.categoryId?.name || null,
+      },
+      combinedOriginalPrice,
+      combinedDiscountedPrice,
+      youSave: combinedOriginalPrice - combinedDiscountedPrice,
+    });
+
+    if (deals.length >= limit) break;
+  }
+
+  return deals;
+}
+
+module.exports = { getBundleSuggestions, getFeaturedBundleDeals, BUNDLE_RULES };
