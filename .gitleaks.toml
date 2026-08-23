@@ -3,23 +3,31 @@ title = "Realistan Gitleaks Config"
 [extend]
 useDefault = true
 
-[[rules.allowlist]]
+# NOTE: global exceptions must use the top-level [[allowlists]] (plural) array — that's the
+# gitleaks-supported way to add exceptions across ALL rules, including the default ruleset
+# pulled in by `useDefault = true` above. The previous version of this file used
+# [[rules.allowlist]] (double-bracketed array nested under `rules`), which isn't valid: there's
+# no [[rules]] block in this file for a per-rule allowlist to attach to, and even a correctly
+# single-bracketed [rules.allowlist] would only exempt one specific custom rule, not the default
+# ruleset. Confirmed by running gitleaks locally — the old syntax fails config validation
+# outright ("expected a map, got 'slice'"), which is why Security workflow runs were failing.
+[[allowlists]]
 description = "Ignore CI test secrets"
 regexes = [
-  "ci_test_",
-  "change_this_",
-  "test_secret",
-  "test_admin_secret",
+  '''ci_test_''',
+  '''change_this_''',
+  '''test_secret''',
+  '''test_admin_secret''',
 ]
 
-[[rules.allowlist]]
+[[allowlists]]
 description = "Ignore seed script default password (not a real credential)"
-paths = ["scripts/seed-superusers.js"]
+paths = ['''scripts/seed-superusers\.js''']
 
-[[rules.allowlist]]
+[[allowlists]]
 description = "Ignore .env.example (placeholder values only)"
-paths = [".env.example"]
+paths = ['''^\.env\.example$''']
 
-[[rules.allowlist]]
+[[allowlists]]
 description = "Ignore test setup files"
-paths = ["src/tests/", "modules/.*/tests/"]
+paths = ['''src/tests/''', '''modules/.*/tests/''']
