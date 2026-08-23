@@ -5,17 +5,21 @@ const validate = require('../../../src/middleware/validate.middleware');
 const { getLoansList, getLoanDetails, addLoan, editLoan, deleteLoan } = require('../controllers/loans.controller');
 const { addLoanSchema, editLoanSchema, loanIDParamSchema } = require('../validators/loans.validator');
 
+// Note: PUT (status update) is gated on 'InquiryStatus' rather than 'Inquiries'
+// so customer_services_management — which only has InquiryStatus:write — can
+// update status without being able to create or delete inquiries.
+
 router.get(
     '/',
     authenticate,
-    requireAccess('User', 'read'),
+    requireAccess('Inquiries', 'read'),
     getLoansList
 );
 
 router.get(
     '/:loanID',
     authenticate,
-    requireAccess('User', 'read'),
+    requireAccess('Inquiries', 'read'),
     validate(loanIDParamSchema, 'params'),
     getLoanDetails
 );
@@ -23,7 +27,7 @@ router.get(
 router.post(
     '/',
     authenticate,
-    requireAccess('User', 'write'),
+    requireAccess('Inquiries', 'write'),
     validate(addLoanSchema),
     addLoan
 );
@@ -31,7 +35,7 @@ router.post(
 router.put(
     '/:loanID',
     authenticate,
-    requireAccess('User', 'write'),
+    requireAccess('InquiryStatus', 'write'),
     validate(loanIDParamSchema, 'params'),
     validate(editLoanSchema),
     editLoan
@@ -40,7 +44,7 @@ router.put(
 router.delete(
     '/:loanID',
     authenticate,
-    requireAccess('User', 'write'),
+    requireAccess('Inquiries', 'write'),
     validate(loanIDParamSchema, 'params'),
     deleteLoan
 );

@@ -6,75 +6,87 @@ const { authenticate, authorize } = require('../../../src/middleware/serveease-a
 const { adminMutationLimit } = require('../../../src/middleware/rateLimit.middleware');
 const { createAgentRules, updateAgentRules, setAgentCredentialsRules, reviewSkillRequestRules } = require('../validators/validators');
 
-router.use(authenticate, authorize('admin'));
+router.use(authenticate);
+
+// Three ServeEase admin role tiers (see constants/adminRoles.js). ServeEase has
+// no admin-console-user-creation concept of its own — that carve-out only
+// applies on the realistan-admin side — so 'admin' and 'operations' get
+// identical ServeEase access here. 'customer_services_management' is scoped
+// down to exactly the "reply / update status" surface: viewing bookings/
+// customers/agents for context, and updating a booking's status. Everything
+// else (agent management, coupons, zones, payments, settings, analytics,
+// fraud, agent-change-requests) requires 'admin' or 'operations'.
+const FULL = authorize('admin', 'operations');
+const CS_OK = authorize('admin', 'operations', 'customer_services_management');
 
 // Dashboard
-router.get('/dashboard', ctrl.getDashboard);
+router.get('/dashboard', CS_OK, ctrl.getDashboard);
 
 // Bookings
-router.get('/bookings/heatmap', ctrl.getBookingHeatmap);
-router.get('/bookings', ctrl.getAllBookings);
-router.patch('/bookings/:id', ctrl.updateBooking);
-router.patch('/bookings/:id/assign-agent', adminMutationLimit, ctrl.assignAgentToBooking);
+router.get('/bookings/heatmap', FULL, ctrl.getBookingHeatmap);
+router.get('/bookings', CS_OK, ctrl.getAllBookings);
+router.patch('/bookings/:id', CS_OK, ctrl.updateBooking);
+router.patch('/bookings/:id/assign-agent', FULL, adminMutationLimit, ctrl.assignAgentToBooking);
 
 // Agent Change Requests
-router.get('/agent-change-requests', ctrl.getAgentChangeRequests);
-router.patch('/agent-change-requests/:id', adminMutationLimit, ctrl.reviewAgentChangeRequest);
+router.get('/agent-change-requests', FULL, ctrl.getAgentChangeRequests);
+router.patch('/agent-change-requests/:id', FULL, adminMutationLimit, ctrl.reviewAgentChangeRequest);
 
 // Customers
-router.get('/customers', ctrl.getCustomers);
-router.get('/customers/:id', ctrl.getCustomerById);
-router.patch('/customers/:id/toggle-active', ctrl.toggleCustomerActive);
+router.get('/customers', CS_OK, ctrl.getCustomers);
+router.get('/customers/:id', CS_OK, ctrl.getCustomerById);
+router.patch('/customers/:id/toggle-active', FULL, ctrl.toggleCustomerActive);
 
-// Agents
-router.get('/agents/locations', ctrl.getAgentLocations);
-router.get('/agents', ctrl.getAgents);
-router.get('/agents/:id', ctrl.getAgentById);
-router.post('/agents', adminMutationLimit, createAgentRules, ctrl.createAgent);
-router.patch('/agents/:id', adminMutationLimit, updateAgentRules, ctrl.updateAgent);
-router.patch('/agents/:id/approve', adminMutationLimit, ctrl.approveAgent);
-router.patch('/agents/:id/toggle-active', adminMutationLimit, ctrl.toggleAgentActive);
-router.patch('/agents/:id/background-verify', adminMutationLimit, ctrl.toggleBackgroundVerify);
-router.patch('/agents/:id/credentials', adminMutationLimit, setAgentCredentialsRules, ctrl.setAgentCredentials);
+// Agents — list/detail are CS_OK (context: who's assigned to a booking), all
+// agent management actions require FULL.
+router.get('/agents/locations', FULL, ctrl.getAgentLocations);
+router.get('/agents', CS_OK, ctrl.getAgents);
+router.get('/agents/:id', CS_OK, ctrl.getAgentById);
+router.post('/agents', FULL, adminMutationLimit, createAgentRules, ctrl.createAgent);
+router.patch('/agents/:id', FULL, adminMutationLimit, updateAgentRules, ctrl.updateAgent);
+router.patch('/agents/:id/approve', FULL, adminMutationLimit, ctrl.approveAgent);
+router.patch('/agents/:id/toggle-active', FULL, adminMutationLimit, ctrl.toggleAgentActive);
+router.patch('/agents/:id/background-verify', FULL, adminMutationLimit, ctrl.toggleBackgroundVerify);
+router.patch('/agents/:id/credentials', FULL, adminMutationLimit, setAgentCredentialsRules, ctrl.setAgentCredentials);
 
 // Agent Skill Requests
-router.get('/skill-requests', ctrl.getSkillRequests);
-router.patch('/skill-requests/:id', adminMutationLimit, reviewSkillRequestRules, ctrl.reviewSkillRequest);
+router.get('/skill-requests', FULL, ctrl.getSkillRequests);
+router.patch('/skill-requests/:id', FULL, adminMutationLimit, reviewSkillRequestRules, ctrl.reviewSkillRequest);
 
 // Analytics & Audit
-router.get('/audit', ctrl.getAuditLogs);
-router.get('/analytics/revenue', ctrl.getRevenueAnalytics);
-router.get('/analytics/bookings', ctrl.getBookingStats);
+router.get('/audit', FULL, ctrl.getAuditLogs);
+router.get('/analytics/revenue', FULL, ctrl.getRevenueAnalytics);
+router.get('/analytics/bookings', FULL, ctrl.getBookingStats);
 
 // Promotions (Coupons)
-router.get('/coupons', ctrl.getAdminCoupons);
-router.post('/coupons', adminMutationLimit, ctrl.createAdminCoupon);
-router.patch('/coupons/:id', adminMutationLimit, ctrl.updateAdminCoupon);
-router.patch('/coupons/:id/toggle', adminMutationLimit, ctrl.toggleAdminCoupon);
+router.get('/coupons', FULL, ctrl.getAdminCoupons);
+router.post('/coupons', FULL, adminMutationLimit, ctrl.createAdminCoupon);
+router.patch('/coupons/:id', FULL, adminMutationLimit, ctrl.updateAdminCoupon);
+router.patch('/coupons/:id/toggle', FULL, adminMutationLimit, ctrl.toggleAdminCoupon);
 
 // Zones
-router.get('/zones', ctrl.getAdminZones);
-router.post('/zones', adminMutationLimit, ctrl.createAdminZone);
-router.patch('/zones/:id', adminMutationLimit, ctrl.updateAdminZone);
-router.patch('/zones/:id/toggle', adminMutationLimit, ctrl.toggleAdminZone);
+router.get('/zones', FULL, ctrl.getAdminZones);
+router.post('/zones', FULL, adminMutationLimit, ctrl.createAdminZone);
+router.patch('/zones/:id', FULL, adminMutationLimit, ctrl.updateAdminZone);
+router.patch('/zones/:id/toggle', FULL, adminMutationLimit, ctrl.toggleAdminZone);
 
 // Payments
-router.get('/payments', ctrl.getAdminPayments);
+router.get('/payments', FULL, ctrl.getAdminPayments);
 
 // Subscriptions
-router.get('/subscriptions', subscriptionCtrl.getAdminSubscriptions);
+router.get('/subscriptions', FULL, subscriptionCtrl.getAdminSubscriptions);
 
 // Fraud management
-router.get('/fraud-users', fraudCtrl.getFraudUsers);
-router.get('/fraud-users/:phone', fraudCtrl.getFraudUserByPhone);
-router.patch('/fraud-users/:phone/unblock', adminMutationLimit, fraudCtrl.unblockFraudUser);
-router.patch('/fraud-users/:phone/flag', adminMutationLimit, fraudCtrl.flagFraudUser);
+router.get('/fraud-users', FULL, fraudCtrl.getFraudUsers);
+router.get('/fraud-users/:phone', FULL, fraudCtrl.getFraudUserByPhone);
+router.patch('/fraud-users/:phone/unblock', FULL, adminMutationLimit, fraudCtrl.unblockFraudUser);
+router.patch('/fraud-users/:phone/flag', FULL, adminMutationLimit, fraudCtrl.flagFraudUser);
 
 // App settings — full CRUD + bulk save for dashboard
-router.get('/settings', fraudCtrl.getSettings);
-router.post('/settings/bulk', adminMutationLimit, fraudCtrl.bulkUpdateSettings);  // must be before /:key
-router.post('/settings', adminMutationLimit, fraudCtrl.createSetting);
-router.patch('/settings/:key', adminMutationLimit, fraudCtrl.updateSetting);
-router.delete('/settings/:key', adminMutationLimit, fraudCtrl.deleteSetting);
+router.get('/settings', FULL, fraudCtrl.getSettings);
+router.post('/settings/bulk', FULL, adminMutationLimit, fraudCtrl.bulkUpdateSettings);  // must be before /:key
+router.post('/settings', FULL, adminMutationLimit, fraudCtrl.createSetting);
+router.patch('/settings/:key', FULL, adminMutationLimit, fraudCtrl.updateSetting);
+router.delete('/settings/:key', FULL, adminMutationLimit, fraudCtrl.deleteSetting);
 
 module.exports = router;

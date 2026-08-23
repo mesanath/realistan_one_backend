@@ -1,6 +1,7 @@
 'use strict';
 const bcrypt = require('bcryptjs');
 const { connectToDatabase, getMany } = require('../../../src/services/databaseConnections');
+const { getRealistanAccess } = require('../../../constants/adminRoles');
 
 exports.getAdminList = async (req, res, next) => {
     try {
@@ -29,12 +30,15 @@ exports.addAdminUsers = async (req, res, next) => {
         }
         const salt = bcrypt.genSaltSync(10);
         const encryptedPassword = await bcrypt.hash(args.password, salt);
+        const { readAccess, writeAccess } = getRealistanAccess(args.realistanRole);
         await NewAdmin.insertOne({
             email: args.email,
             authername: args.authername,
             password: encryptedPassword,
-            readAccess: args.readAccess && args.readAccess.length ? args.readAccess : [],
-            writeAccess: args.writeAccess && args.writeAccess.length ? args.writeAccess : [],
+            realistanRole: args.realistanRole || null,
+            serveeaseRole: args.serveeaseRole || null,
+            readAccess,
+            writeAccess,
             userID: (+new Date()).toString(),
         });
         return res.json({ success: true, message: 'User created successfully' });
@@ -59,11 +63,14 @@ exports.editAdminUsers = async (req, res, next) => {
             }
             return res.json({ success: false, message: 'Author name already exists', field: 'authername' });
         }
+        const { readAccess, writeAccess } = getRealistanAccess(args.realistanRole);
         const updateObj = {
             email: args.email,
             authername: args.authername,
-            readAccess: args.readAccess && args.readAccess.length ? args.readAccess : [],
-            writeAccess: args.writeAccess && args.writeAccess.length ? args.writeAccess : [],
+            realistanRole: args.realistanRole || null,
+            serveeaseRole: args.serveeaseRole || null,
+            readAccess,
+            writeAccess,
         };
         if (args.password) {
             const salt = bcrypt.genSaltSync(10);

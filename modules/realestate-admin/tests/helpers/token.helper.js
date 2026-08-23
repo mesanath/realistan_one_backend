@@ -8,8 +8,8 @@ const generateToken = (overrides = {}) =>
         {
             userID: 'user123',
             role: 'Product',
-            readAccess: ['User', 'Articles'],
-            writeAccess: ['User', 'Articles'],
+            readAccess: ['User', 'Articles', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers'],
+            writeAccess: ['User', 'Articles', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers'],
             ...overrides,
         },
         SECRET

@@ -4,19 +4,24 @@ const { authenticate, authorize } = require('../../../src/middleware/serveease-a
 
 router.use(authenticate);
 
+// Admin-side roles allowed to view/act on disputes — every admin tier gets at
+// least this (see constants/adminRoles.js): dispute reply/resolve is exactly
+// the "reply permission" customer_services_management is meant to have.
+const ANY_ADMIN = ['admin', 'operations', 'customer_services_management'];
+
 // Customer or agent raises a dispute
 router.post('/', authorize('customer', 'agent'), ctrl.createDispute);
 
-// List disputes — customer/agent see their own; admin sees all
-router.get('/', authorize('customer', 'agent', 'admin'), ctrl.getDisputes);
+// List disputes — customer/agent see their own; any admin tier sees all
+router.get('/', authorize('customer', 'agent', ...ANY_ADMIN), ctrl.getDisputes);
 
-// Single dispute — customer/agent see own; admin sees any
-router.get('/:id', authorize('customer', 'agent', 'admin'), ctrl.getDisputeById);
+// Single dispute — customer/agent see own; any admin tier sees any
+router.get('/:id', authorize('customer', 'agent', ...ANY_ADMIN), ctrl.getDisputeById);
 
-// Admin sends a customer-visible reply (without resolving)
-router.patch('/:id/reply', authorize('admin'), ctrl.replyToDispute);
+// Sends a customer-visible reply (without resolving) — any admin tier
+router.patch('/:id/reply', authorize(...ANY_ADMIN), ctrl.replyToDispute);
 
-// Admin resolves a dispute
-router.patch('/:id/resolve', authorize('admin'), ctrl.resolveDispute);
+// Resolves a dispute — any admin tier
+router.patch('/:id/resolve', authorize(...ANY_ADMIN), ctrl.resolveDispute);
 
 module.exports = router;
