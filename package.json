@@ -10,7 +10,7 @@
     "dev:local": "NODE_ENV=local nodemon server.js",
     "test": "NODE_ENV=test jest --runInBand --forceExit",
     "test:watch": "NODE_ENV=test jest --watch",
-    "test:coverage": "NODE_ENV=test jest --coverage",
+    "test:coverage": "NODE_ENV=test jest --coverage --runInBand --forceExit",
     "seed": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js",
     "seed:local": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js",
     "seed:clean": "DOTENV_CONFIG_PATH=.env.development node scripts/seed.js --clean",
