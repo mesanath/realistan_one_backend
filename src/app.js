@@ -21,6 +21,7 @@ const realestateAuthRoutes     = require('../modules/realestate/routes/auth.rout
 const realestatePropertyRoutes = require('../modules/realestate/routes/property.routes');
 const realestateArticleRoutes  = require('../modules/realestate/routes/article.routes');
 const realestateContactRoutes  = require('../modules/realestate/routes/contact.routes');
+const realestateBannerRoutes   = require('../modules/realestate/routes/banner.routes');
 
 // Realestate Admin (admin management panel)
 const adminAuthRoutes      = require('../modules/realestate-admin/routes/auth.routes');
@@ -91,6 +92,7 @@ app.use('/api/v1/realestate/auth',       realestateAuthRoutes);
 app.use('/api/v1/realestate/properties', realestatePropertyRoutes);
 app.use('/api/v1/realestate/articles',   realestateArticleRoutes);
 app.use('/api/v1/realestate/contact',    realestateContactRoutes);
+app.use('/api/v1/realestate/banners',    realestateBannerRoutes);
 
 // ─── Routes: Realestate Admin (/api/v1/realestate-admin/) ────────────────────
 app.use('/api/v1/realestate-admin/auth',       adminAuthRoutes);

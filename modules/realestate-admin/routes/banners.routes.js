@@ -10,6 +10,7 @@ const {
     deleteBanner,
     getBannerImages,
     addBannerImage,
+    editBannerImage,
     deleteBannerImage,
 } = require('../controllers/banners.controller');
 const {
@@ -17,6 +18,7 @@ const {
     editBannerSchema,
     bannerIDParamSchema,
     addBannerImageSchema,
+    editBannerImageSchema,
     imageIDParamSchema,
 } = require('../validators/banners.validator');
 
@@ -35,6 +37,15 @@ router.post(
     requireAccess('Articles', 'write'),
     validate(addBannerImageSchema),
     addBannerImage
+);
+
+router.put(
+    '/images/:imageID',
+    authenticate,
+    requireAccess('Articles', 'write'),
+    validate(imageIDParamSchema, 'params'),
+    validate(editBannerImageSchema),
+    editBannerImage
 );
 
 router.delete(
