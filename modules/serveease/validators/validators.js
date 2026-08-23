@@ -123,12 +123,8 @@ const updateAgentProfileRules = [
   body('bio')
     .optional().trim()
     .isLength({ max: 500 }).withMessage('Bio must be under 500 characters'),
-  body('skills')
-    .optional()
-    .isArray().withMessage('skills must be an array'),
-  body('skills.*')
-    .optional()
-    .isMongoId().withMessage('Each skill must be a valid category ID'),
+  // No `skills` rule here — the route no longer applies a `skills` field from this request (see
+  // agent.routes.js PATCH /profile), so validating its shape would just be dead code.
   // `checkFalsy: true` on both — the Agent schema's bankDetails fields are all optional and a
   // form field left blank arrives here as `''`, not absent. Without checkFalsy, plain `.optional()`
   // only skips genuinely-missing (undefined) fields, so an empty string still gets validated

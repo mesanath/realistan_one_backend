@@ -138,14 +138,20 @@ router.get('/profile', authorize('agent'), async (req, res) => {
   }
 });
 
-// PATCH /api/v1/agents/profile — update name, bio, skills, bank details
+// PATCH /api/v1/agents/profile — update name, bio, bank details.
+// `skills` is intentionally NOT settable here — an agent's skill list may only grow via the
+// admin-approved POST /agents/skill-requests -> PATCH /admin/skill-requests/:id flow. This
+// endpoint used to accept a raw `skills` array and apply it unchecked, which let any agent grant
+// themselves any skill instantly, bypassing that approval workflow entirely. A `skills` field in
+// the request body is now silently ignored rather than 400ing, so older/cached clients still get
+// a 200 (their other field updates still apply) — the payload was never returned to the caller
+// as an error condition, so this preserves that behavior sans the loophole.
 router.patch('/profile', authorize('agent'), updateAgentProfileRules, async (req, res) => {
   try {
-    const { name, bio, skills, bankDetails } = req.body;
+    const { name, bio, bankDetails } = req.body;
     const updates = {};
     if (name) updates.name = name;
     if (bio !== undefined) updates.bio = bio;
-    if (skills) updates.skills = skills;
     if (bankDetails) updates.bankDetails = bankDetails;
 
     const agent = await Agent.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true })

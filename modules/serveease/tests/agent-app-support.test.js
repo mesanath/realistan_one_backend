@@ -305,3 +305,28 @@ describe('PATCH /agents/profile bankDetails validation', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// ─── PATCH /agents/profile no longer self-grants skills (closes the skill-request bypass) ─────
+
+describe('PATCH /agents/profile skills field is ignored', () => {
+  let agent, agentToken, category;
+
+  beforeAll(async () => {
+    agent = await Agent.create({ name: 'Skill Bypass Agent', phone: '+919833330042', gender: 'male', city: 'Bangalore' });
+    agentToken = jwt.sign({ id: agent._id.toString(), role: 'agent' }, process.env.JWT_SECRET);
+    category = await Category.create({ name: 'Bypass Category', slug: 'bypass-category' });
+  });
+
+  it('does not add a skill sent directly in the request body — must go through skill-requests', async () => {
+    const res = await request(app)
+      .patch('/api/v1/serveease/agents/profile')
+      .set('Authorization', `Bearer ${agentToken}`)
+      .send({ bio: 'trying to self-grant a skill', skills: [category._id.toString()] });
+    expect(res.status).toBe(200);
+    expect(res.body.data.bio).toBe('trying to self-grant a skill');
+    expect(res.body.data.skills).toEqual([]);
+
+    const reloaded = await Agent.findById(agent._id);
+    expect(reloaded.skills).toEqual([]);
+  });
+});
