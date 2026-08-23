@@ -159,6 +159,12 @@ exports.replyToDispute = async (req, res) => {
       'customer',
     ).catch(() => {});
 
+    // Additive: when the agent (not the customer) raised this dispute, they're the one who
+    // actually needs to see the reply — the in-app notification the agent app's bell shows.
+    if (dispute.raisedByRole === 'agent' && dispute.agent) {
+      notificationService.notify.disputeReply(dispute.agent, { disputeId: dispute._id, adminReply: dispute.adminReply }).catch(() => {});
+    }
+
     res.json({ success: true, data: dispute });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -239,6 +245,12 @@ exports.resolveDispute = async (req, res) => {
       role: 'admin',
       meta: { disputeId: dispute._id, resolution, refundAmount: parsedRefundAmount },
     });
+
+    // Additive: same reasoning as replyToDispute above — the agent who raised this needs to know
+    // it's resolved, independent of whatever the customer-facing notification path does.
+    if (dispute.raisedByRole === 'agent' && dispute.agent) {
+      notificationService.notify.disputeResolved(dispute.agent, { disputeId: dispute._id, resolution, adminNote: dispute.adminNote }).catch(() => {});
+    }
 
     res.json({ success: true, data: dispute });
   } catch (err) {

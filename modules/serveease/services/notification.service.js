@@ -182,6 +182,44 @@ const notify = {
 
   paymentReceived: (userId, userRole, payload) =>
     send({ userId, userRole, type: 'payment_received', channel: 'in_app', title: 'Payment Received', body: `Payment of ₹${payload.amount} received for booking #${payload.bookingCode}.`, payload }),
+
+  // Admin-panel-action -> agent-app-notification wiring (all in_app — no push/SMS credentials
+  // required, just a DB record the agent's app lists via GET /agents/notifications).
+  skillRequestReviewed: (agentId, approved, payload) =>
+    send({
+      userId: agentId, userRole: 'agent',
+      type: approved ? 'skill_request_approved' : 'skill_request_rejected',
+      channel: 'in_app',
+      title: approved ? 'Skill Request Approved' : 'Skill Request Rejected',
+      body: approved
+        ? `Your request to add "${payload.categoryName}" was approved — it's now one of your skills.`
+        : `Your request to add "${payload.categoryName}" was rejected.`,
+      payload,
+    }),
+
+  credentialsUpdated: (agentId, payload) =>
+    send({
+      userId: agentId, userRole: 'agent', type: 'credentials_updated', channel: 'in_app',
+      title: 'Login Details Updated',
+      body: 'Your login username/password was updated by an admin.',
+      payload,
+    }),
+
+  disputeReply: (agentId, payload) =>
+    send({
+      userId: agentId, userRole: 'agent', type: 'dispute_reply', channel: 'in_app',
+      title: 'Update on your reported issue',
+      body: (payload.adminReply || '').slice(0, 120),
+      payload,
+    }),
+
+  disputeResolved: (agentId, payload) =>
+    send({
+      userId: agentId, userRole: 'agent', type: 'dispute_resolved', channel: 'in_app',
+      title: 'Your reported issue was resolved',
+      body: payload.adminNote ? payload.adminNote.slice(0, 120) : 'An admin has resolved the issue you reported.',
+      payload,
+    }),
 };
 
 module.exports = { send, notify, sendPush, sendSmsNotification, sendPushNotification };

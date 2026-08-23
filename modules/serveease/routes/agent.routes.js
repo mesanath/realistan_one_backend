@@ -5,6 +5,8 @@ const Agent = require('../models/Agent');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const AgentSkillRequest = require('../models/AgentSkillRequest');
+const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
 const { authenticate, authorize } = require('../../../src/middleware/serveease-auth.middleware');
 const { agentActionLimit } = require('../../../src/middleware/rateLimit.middleware');
 const { updateAgentProfileRules, applyLeaveRules, agentLoginRules, createSkillRequestRules } = require('../validators/validators');
@@ -56,17 +58,27 @@ router.get('/available', async (req, res) => {
 router.post('/login', agentLoginRules, async (req, res) => {
   try {
     const { username, password } = req.body;
-    const agent = await Agent.findOne({ username: String(username).toLowerCase().trim() }).select('+passwordHash');
+    const normalizedUsername = String(username).toLowerCase().trim();
+    const agent = await Agent.findOne({ username: normalizedUsername }).select('+passwordHash');
+    // Every failure branch below logs to AuditLog (type: agent_login_failed) so admins can see
+    // failed login attempts against a specific agent — surfaced on that agent's admin detail page.
     if (!agent || !agent.passwordHash) {
+      await AuditLog.create({ type: 'agent_login_failed', role: 'agent', meta: { username: normalizedUsername, reason: 'unknown_username' } });
       return res.status(401).json({ success: false, message: 'Invalid username or password' });
     }
 
     const match = await bcrypt.compare(password, agent.passwordHash);
-    if (!match) return res.status(401).json({ success: false, message: 'Invalid username or password' });
+    if (!match) {
+      await AuditLog.create({ type: 'agent_login_failed', userId: agent._id, role: 'agent', meta: { username: normalizedUsername, reason: 'wrong_password', agentId: agent._id } });
+      return res.status(401).json({ success: false, message: 'Invalid username or password' });
+    }
 
     if (!agent.isActive) {
+      await AuditLog.create({ type: 'agent_login_failed', userId: agent._id, role: 'agent', meta: { username: normalizedUsername, reason: 'deactivated', agentId: agent._id } });
       return res.status(403).json({ success: false, message: 'This account has been deactivated. Please contact support.' });
     }
+
+    await AuditLog.create({ type: 'agent_login_success', userId: agent._id, role: 'agent', meta: { username: normalizedUsername, agentId: agent._id } });
 
     const tokens = signAuthTokens({ id: agent._id.toString(), phone: agent.phone, role: 'agent', screenName: agent.name });
 
@@ -207,6 +219,52 @@ router.get('/dashboard-stats', authorize('agent'), async (req, res) => {
         ratingCount: agent?.ratingCount || 0,
       },
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+// In-app notification center — admin actions (skill-request review, credential resets, dispute
+// replies/resolutions) create these via notification.service.js's notify.* helpers; the agent app
+// lists/reads them here. No push/SMS infra required for the 'in_app' channel these all use.
+
+// GET /api/v1/agents/notifications
+router.get('/notifications', authorize('agent'), async (req, res) => {
+  try {
+    const notifications = await Notification.find({ userId: req.user.id, userRole: 'agent' })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    const unreadCount = await Notification.countDocuments({ userId: req.user.id, userRole: 'agent', readAt: null });
+    res.json({ success: true, data: notifications, unreadCount });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH /api/v1/agents/notifications/read-all — must be declared before /:id/read
+router.patch('/notifications/read-all', authorize('agent'), async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { userId: req.user.id, userRole: 'agent', readAt: null },
+      { readAt: new Date() },
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH /api/v1/agents/notifications/:id/read
+router.patch('/notifications/:id/read', authorize('agent'), async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id, userRole: 'agent' },
+      { readAt: new Date() },
+      { new: true },
+    );
+    if (!notification) return res.status(404).json({ success: false, message: 'Notification not found' });
+    res.json({ success: true, data: notification });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
