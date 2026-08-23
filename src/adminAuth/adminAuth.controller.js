@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { connectToDatabase } = require('../services/databaseConnections');
 const logger = require('../utils/logger');
+const { REALISTAN_ACCESS_BY_ROLE } = require('../../constants/adminRoles');
 
 const SUPER_ADMIN_COLLECTION = 'superAdmins';
 const LEGACY_ADMIN_COLLECTION = 'new_admin';
@@ -21,19 +22,37 @@ const generateOtp = () => {
 
 const getAdminSecret = () => process.env.JWT_ADMIN_SECRET || process.env.JWT_SIG;
 
-const signAdminToken = (admin) =>
-    jwt.sign(
+// `isSuper` MUST reflect where the admin doc actually came from — true only for
+// genuine superAdmins-collection records (verify-otp always is; login is only
+// when the email matched superAdmins, not the legacy new_admin fallback).
+//
+// Previously this unconditionally signed { role: 'admin', isSuperAdmin: true }
+// for every successful login regardless of source, which meant any legacy
+// new_admin user — even one with empty readAccess/writeAccess in the
+// realistan-admin panel — got full, unrestricted ServeEase admin access
+// (bookings, payments, coupons, agent credentials, settings, everything) the
+// moment they logged in through this endpoint instead of realistan-admin's
+// own /auth/login. That's fixed here: legacy admins get exactly the
+// realistanRole/serveeaseRole/readAccess/writeAccess already stored on their
+// own record — nothing is granted implicitly.
+const signAdminToken = (admin, isSuper) => {
+    const access = isSuper
+        ? REALISTAN_ACCESS_BY_ROLE.admin
+        : { readAccess: admin.readAccess || [], writeAccess: admin.writeAccess || [] };
+    return jwt.sign(
         {
             userID: admin.userID || String(admin._id),
             phone: admin.phone || '',
             email: admin.email || '',
-            role: 'admin',
-            readAccess: admin.readAccess || ['User', 'Articles'],
-            writeAccess: admin.writeAccess || ['User', 'Articles'],
-            isSuperAdmin: true,
+            role: isSuper ? 'admin' : 'Product',
+            serveeaseRole: isSuper ? 'admin' : (admin.serveeaseRole || null),
+            readAccess: access.readAccess,
+            writeAccess: access.writeAccess,
+            isSuperAdmin: !!isSuper,
         },
         getAdminSecret()
     );
+};
 
 /**
  * POST /api/v1/admin-auth/send-otp
@@ -120,7 +139,8 @@ exports.verifyOtp = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Admin not found' });
         }
 
-        const token = signAdminToken(admin);
+        // Only ever queries superAdmins above, so this is always a genuine super admin.
+        const token = signAdminToken(admin, true);
 
         return res.json({
             success: true,
@@ -128,8 +148,8 @@ exports.verifyOtp = async (req, res) => {
             admin: {
                 email: admin.email,
                 phone: admin.phone,
-                readAccess: admin.readAccess || ['User', 'Articles'],
-                writeAccess: admin.writeAccess || ['User', 'Articles'],
+                readAccess: REALISTAN_ACCESS_BY_ROLE.admin.readAccess,
+                writeAccess: REALISTAN_ACCESS_BY_ROLE.admin.writeAccess,
             },
         });
     } catch (err) {
@@ -154,9 +174,15 @@ exports.login = async (req, res) => {
         const superDB = connectToDatabase().collection(SUPER_ADMIN_COLLECTION);
         const legacyDB = connectToDatabase().collection(LEGACY_ADMIN_COLLECTION);
 
-        // Check superAdmins first, then legacy new_admin
+        // Check superAdmins first, then legacy new_admin — isSuper tracks which
+        // collection actually matched, since that's what determines the access
+        // this token is allowed to carry (see signAdminToken above).
         let adminUser = await superDB.findOne({ email });
-        if (!adminUser) adminUser = await legacyDB.findOne({ email: email });
+        let isSuper = true;
+        if (!adminUser) {
+            adminUser = await legacyDB.findOne({ email: email });
+            isSuper = false;
+        }
 
         if (!adminUser) {
             return res.status(401).json({ success: false, message: 'No user found' });
@@ -171,13 +197,13 @@ exports.login = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Password does not match' });
         }
 
-        const token = signAdminToken(adminUser);
+        const token = signAdminToken(adminUser, isSuper);
 
         return res.json({
             success: true,
             token,
             userName: adminUser.authername || adminUser.email,
-            readAccess: adminUser.readAccess || ['User', 'Articles'],
+            readAccess: isSuper ? REALISTAN_ACCESS_BY_ROLE.admin.readAccess : (adminUser.readAccess || []),
         });
     } catch (err) {
         logger.error(`Admin login error: ${err.message}`);

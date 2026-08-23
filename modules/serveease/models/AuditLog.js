@@ -12,6 +12,7 @@ const auditLogSchema = new mongoose.Schema({
       'payment_captured', 'payment_signature_invalid', 'payment_captured_webhook',
       'dispute_created', 'dispute_resolved',
       'photo_uploaded',
+      'agent_login_failed', 'agent_login_success',
     ],
     required: true,
   },

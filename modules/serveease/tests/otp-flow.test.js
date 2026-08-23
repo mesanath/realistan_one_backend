@@ -15,6 +15,20 @@ jest.mock('../../../src/middleware/rateLimit.middleware', () => {
   return { otpRateLimit: pass, apiRateLimit: pass, bookingCreateLimit: pass, otpVerifyLimit: pass, agentActionLimit: pass, adminMutationLimit: pass };
 });
 
+// completeService (triggered below by verify-end) fires invoice generation via a fire-and-forget
+// setImmediate that isn't awaited by the response — real PDFKit + Mongo lookups inside it can
+// still be pending when this file's afterAll closes the DB and Jest tears this file's environment
+// down. If it finally settles after that, it throws inside a torn-down module registry, and —
+// since setImmediate callbacks aren't scoped to the file that created them — surfaces as a
+// baffling failure in whatever unrelated test file happens to be running by then (that failure
+// looks like "logger.error is not a function", but logger.js is fine; this is the real cause).
+// Mocking it to resolve immediately keeps that background work fast and out of production code's
+// way; the explicit flush after the verify-end assertions (below) gives it a moment to actually
+// finish while this file's DB connection + environment are still alive.
+jest.mock('../services/invoice.service', () => ({
+  generateInvoice: jest.fn().mockResolvedValue({ url: null, skippedUpload: true }),
+}));
+
 // Replace Redis with a synchronous in-memory Map so tests don't need a real Redis instance
 jest.mock('../config/redis', () => {
   const store = new Map();
@@ -194,6 +208,11 @@ describe('Full OTP flow: arrived → in_progress → completed', () => {
 
     const updated = await Booking.findById(booking._id);
     expect(updated.status).toBe('completed');
+
+    // Let completeService's fire-and-forget invoice-generation setImmediate (now a fast mock,
+    // see jest.mock('../services/invoice.service') above) finish before this file's afterAll
+    // closes the DB — see the comment on that mock for why this matters.
+    await new Promise((resolve) => setImmediate(resolve));
   });
 });
 

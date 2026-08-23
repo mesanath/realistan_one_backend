@@ -13,6 +13,8 @@ const notificationSchema = new mongoose.Schema({
       'otp_start', 'otp_end',
       'payment_received', 'refund_processed',
       'review_prompt', 'promo_offer', 'general',
+      'skill_request_approved', 'skill_request_rejected', 'credentials_updated',
+      'dispute_reply', 'dispute_resolved',
     ],
     required: true,
   },

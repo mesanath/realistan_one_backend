@@ -9,6 +9,7 @@ const AgentSkillRequest = require('../models/AgentSkillRequest');
 const Coupon = require('../models/Coupon');
 const Zone = require('../models/Zone');
 const Payment = require('../models/Payment');
+const notificationService = require('../services/notification.service');
 
 // GET /api/v1/admin/dashboard
 exports.getDashboard = async (req, res) => {
@@ -316,6 +317,8 @@ exports.setAgentCredentials = async (req, res) => {
       type: 'admin_action', userId: req.user.id, role: 'admin',
       meta: { action: 'set_agent_credentials', agentId: req.params.id, usernameChanged: !!username, passwordChanged: !!password },
     });
+    // Fire-and-forget: a notification-delivery hiccup must never mask a successful credentials update.
+    notificationService.notify.credentialsUpdated(agent._id, { usernameChanged: !!username, passwordChanged: !!password }).catch(() => {});
     res.json({ success: true, message: 'Credentials updated', data: { username: agent.username } });
   } catch (err) {
     if (err.code === 11000 && err.keyPattern?.username) {
@@ -676,11 +679,13 @@ exports.reviewSkillRequest = async (req, res) => {
   try {
     const { action, note } = req.body;
 
-    const request = await AgentSkillRequest.findById(req.params.id);
+    const request = await AgentSkillRequest.findById(req.params.id).populate('categoryId', 'name');
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
     if (request.status !== 'pending') {
       return res.status(400).json({ success: false, message: 'Request already reviewed' });
     }
+
+    const categoryName = request.categoryId?.name || 'that service';
 
     if (action === 'approve') {
       await Agent.findByIdAndUpdate(request.agentId, { $addToSet: { skills: request.categoryId } });
@@ -696,6 +701,9 @@ exports.reviewSkillRequest = async (req, res) => {
         meta: { action: 'reject_skill_request', requestId: request._id, agentId: request.agentId, note },
       });
     }
+
+    // Fire-and-forget — see setAgentCredentials above for why this isn't awaited into the try/catch.
+    notificationService.notify.skillRequestReviewed(request.agentId, action === 'approve', { categoryName }).catch(() => {});
 
     res.json({ success: true, message: `Request ${action}d` });
   } catch (err) {

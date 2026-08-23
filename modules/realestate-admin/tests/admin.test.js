@@ -9,6 +9,9 @@ const { generateToken, generateNoAccessToken, generateReadOnlyToken } = require(
 const TOKEN = generateToken();
 const NO_ACCESS_TOKEN = generateNoAccessToken();
 const READ_ONLY_TOKEN = generateReadOnlyToken();
+// 'operations'-shaped token: full read/write on the general modules, but no
+// AdminConsoleUsers — the exact case this permission split exists to cover.
+const OPERATIONS_TOKEN = generateToken({ writeAccess: ['User', 'Articles', 'Inquiries', 'InquiryStatus'] });
 
 let mockCollection;
 
@@ -93,10 +96,18 @@ describe('POST /api/v1/realestate-admin/admin/users', () => {
         expect(res.status).toBe(401);
     });
 
-    it('returns 403 when user has no writeAccess: User', async () => {
+    it('returns 403 when user has no writeAccess at all', async () => {
         const res = await request(app)
             .post('/api/v1/realestate-admin/admin/users')
             .set('Authorization', `Bearer ${READ_ONLY_TOKEN}`)
+            .send({ email: 'x@y.com', authername: 'xyz', password: 'password123' });
+        expect(res.status).toBe(403);
+    });
+
+    it('returns 403 for an operations-level token (no AdminConsoleUsers) — this is the split operations exists to enforce', async () => {
+        const res = await request(app)
+            .post('/api/v1/realestate-admin/admin/users')
+            .set('Authorization', `Bearer ${OPERATIONS_TOKEN}`)
             .send({ email: 'x@y.com', authername: 'xyz', password: 'password123' });
         expect(res.status).toBe(403);
     });
@@ -119,11 +130,11 @@ describe('POST /api/v1/realestate-admin/admin/users', () => {
         expect(res.body.errors[0].field).toBe('authername');
     });
 
-    it('returns 400 when readAccess has invalid level', async () => {
+    it('returns 400 when realistanRole is not a known role', async () => {
         const res = await request(app)
             .post('/api/v1/realestate-admin/admin/users')
             .set('Authorization', `Bearer ${TOKEN}`)
-            .send({ email: 'x@y.com', authername: 'validname', password: 'password123', readAccess: ['InvalidLevel'] });
+            .send({ email: 'x@y.com', authername: 'validname', password: 'password123', realistanRole: 'superuser' });
         expect(res.status).toBe(400);
     });
 
@@ -149,19 +160,24 @@ describe('POST /api/v1/realestate-admin/admin/users', () => {
         expect(res.body.field).toBe('authername');
     });
 
-    it('creates user successfully with valid data', async () => {
+    it('creates user successfully with valid data, computing access from realistanRole server-side', async () => {
         mockCollection.findOne.mockResolvedValue(null);
         const res = await request(app)
             .post('/api/v1/realestate-admin/admin/users')
             .set('Authorization', `Bearer ${TOKEN}`)
             .send({
                 email: 'new@test.com', authername: 'newuser', password: 'password123',
-                readAccess: ['User'], writeAccess: ['Articles'],
+                realistanRole: 'operations', serveeaseRole: 'customer_services_management',
             });
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.message).toBe('User created successfully');
         expect(mockCollection.insertOne).toHaveBeenCalledTimes(1);
+        const inserted = mockCollection.insertOne.mock.calls[0][0];
+        expect(inserted.realistanRole).toBe('operations');
+        expect(inserted.serveeaseRole).toBe('customer_services_management');
+        expect(inserted.writeAccess).not.toContain('AdminConsoleUsers');
+        expect(inserted.writeAccess).toContain('Articles');
     });
 });
 

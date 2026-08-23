@@ -35,17 +35,23 @@ describe('addAdminUserSchema', () => {
         expect(addAdminUserSchema.safeParse(valid).success).toBe(true);
     });
 
-    it('passes with optional access arrays', () => {
-        const result = addAdminUserSchema.safeParse({ ...valid, readAccess: ['User'], writeAccess: ['Articles'] });
+    it('passes with valid realistanRole and serveeaseRole', () => {
+        const result = addAdminUserSchema.safeParse({ ...valid, realistanRole: 'operations', serveeaseRole: 'customer_services_management' });
         expect(result.success).toBe(true);
-        expect(result.data.readAccess).toEqual(['User']);
+        expect(result.data.realistanRole).toBe('operations');
+        expect(result.data.serveeaseRole).toBe('customer_services_management');
     });
 
-    it('defaults readAccess and writeAccess to empty arrays when omitted', () => {
+    it('passes with roles omitted (no access in either product)', () => {
         const result = addAdminUserSchema.safeParse(valid);
         expect(result.success).toBe(true);
-        expect(result.data.readAccess).toEqual([]);
-        expect(result.data.writeAccess).toEqual([]);
+        expect(result.data.realistanRole).toBeUndefined();
+        expect(result.data.serveeaseRole).toBeUndefined();
+    });
+
+    it('passes with roles explicitly null', () => {
+        const result = addAdminUserSchema.safeParse({ ...valid, realistanRole: null, serveeaseRole: null });
+        expect(result.success).toBe(true);
     });
 
     it('fails when email is invalid', () => {
@@ -65,8 +71,13 @@ describe('addAdminUserSchema', () => {
         expect(result.success).toBe(false);
     });
 
-    it('fails when readAccess contains an invalid level', () => {
-        const result = addAdminUserSchema.safeParse({ ...valid, readAccess: ['InvalidLevel'] });
+    it('fails when realistanRole is not a known role', () => {
+        const result = addAdminUserSchema.safeParse({ ...valid, realistanRole: 'superuser' });
+        expect(result.success).toBe(false);
+    });
+
+    it('fails when serveeaseRole is not a known role', () => {
+        const result = addAdminUserSchema.safeParse({ ...valid, serveeaseRole: 'superuser' });
         expect(result.success).toBe(false);
     });
 });

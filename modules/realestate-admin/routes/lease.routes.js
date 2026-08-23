@@ -5,17 +5,21 @@ const validate = require('../../../src/middleware/validate.middleware');
 const { getLeaseList, getLeaseDetails, addLease, editLease, deleteLease } = require('../controllers/lease.controller');
 const { addLeaseSchema, editLeaseSchema, leaseIDParamSchema } = require('../validators/lease.validator');
 
+// Note: PUT (status update) is gated on 'InquiryStatus' rather than 'Inquiries'
+// so customer_services_management — which only has InquiryStatus:write — can
+// update status without being able to create or delete inquiries.
+
 router.get(
     '/',
     authenticate,
-    requireAccess('User', 'read'),
+    requireAccess('Inquiries', 'read'),
     getLeaseList
 );
 
 router.get(
     '/:leaseID',
     authenticate,
-    requireAccess('User', 'read'),
+    requireAccess('Inquiries', 'read'),
     validate(leaseIDParamSchema, 'params'),
     getLeaseDetails
 );
@@ -23,7 +27,7 @@ router.get(
 router.post(
     '/',
     authenticate,
-    requireAccess('Articles', 'write'),
+    requireAccess('Inquiries', 'write'),
     validate(addLeaseSchema),
     addLease
 );
@@ -31,7 +35,7 @@ router.post(
 router.put(
     '/:leaseID',
     authenticate,
-    requireAccess('Articles', 'write'),
+    requireAccess('InquiryStatus', 'write'),
     validate(leaseIDParamSchema, 'params'),
     validate(editLeaseSchema),
     editLease
@@ -40,7 +44,7 @@ router.put(
 router.delete(
     '/:leaseID',
     authenticate,
-    requireAccess('Articles', 'write'),
+    requireAccess('Inquiries', 'write'),
     validate(leaseIDParamSchema, 'params'),
     deleteLease
 );
