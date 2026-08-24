@@ -9,10 +9,17 @@
  *   npm run seed:superusers         # seeds without wiping
  *   npm run seed:superusers -- --clean   # drops existing super admins first
  */
+// dotenv's override:true (needed so DOTENV_CONFIG_PATH's file wins over whatever's already in
+// process.env, e.g. a stale MONGO_IP from the shell) also clobbers a caller-supplied
+// SUPER_ADMIN_DEFAULT_PASSWORD back to the .env file's own default — since every .env* file here
+// defines that same key. Snapshot it first and restore it after, so `SUPER_ADMIN_DEFAULT_PASSWORD=x
+// npm run seed:superusers` actually take effect instead of silently seeding the file's default.
+const explicitPassword = process.env.SUPER_ADMIN_DEFAULT_PASSWORD;
 const dotenvConfig = process.env.DOTENV_CONFIG_PATH
     ? { path: process.env.DOTENV_CONFIG_PATH, override: true }
     : {};
 require('dotenv').config(dotenvConfig);
+if (explicitPassword) process.env.SUPER_ADMIN_DEFAULT_PASSWORD = explicitPassword;
 const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
