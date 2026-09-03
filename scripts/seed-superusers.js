@@ -24,20 +24,27 @@ const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const { getRealistanAccess } = require('../constants/adminRoles');
+const ADMIN_ACCESS = getRealistanAccess('admin');
+
 const SUPER_ADMINS = [
     {
         email: 'admin@realistan.in',
         phone: '8884422294',
         authername: 'admin',
-        readAccess: ['User', 'Articles'],
-        writeAccess: ['User', 'Articles'],
+        realistanRole: 'admin',
+        serveeaseRole: 'admin',
+        readAccess: ADMIN_ACCESS.readAccess,
+        writeAccess: ADMIN_ACCESS.writeAccess,
     },
     {
         email: 'sanath_admin@realistan.in',
         phone: '9591972808',
         authername: 'sanath_admin',
-        readAccess: ['User', 'Articles'],
-        writeAccess: ['User', 'Articles'],
+        realistanRole: 'admin',
+        serveeaseRole: 'admin',
+        readAccess: ADMIN_ACCESS.readAccess,
+        writeAccess: ADMIN_ACCESS.writeAccess,
     },
 ];
 
@@ -79,6 +86,8 @@ async function run() {
                     email: admin.email,
                     phone: admin.phone,
                     authername: admin.authername,
+                    realistanRole: admin.realistanRole,
+                    serveeaseRole: admin.serveeaseRole,
                     readAccess: admin.readAccess,
                     writeAccess: admin.writeAccess,
                     password: passwordHash,
@@ -97,6 +106,8 @@ async function run() {
                 $set: {
                     email: admin.email,
                     authername: admin.authername,
+                    realistanRole: admin.realistanRole,
+                    serveeaseRole: admin.serveeaseRole,
                     readAccess: admin.readAccess,
                     writeAccess: admin.writeAccess,
                     password: passwordHash,

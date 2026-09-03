@@ -35,6 +35,7 @@ const adminProfilesRoutes  = require('../modules/realestate-admin/routes/profile
 const adminLeaseRoutes     = require('../modules/realestate-admin/routes/lease.routes');
 const adminLoansRoutes     = require('../modules/realestate-admin/routes/loans.routes');
 const adminPincodesRoutes  = require('../modules/realestate-admin/routes/pincodes.routes');
+const adminAgentsRoutes    = require('../modules/realestate-admin/routes/agents.routes');
 
 // ServeEase (home services marketplace)
 const serveeaseAuthRoutes         = require('../modules/serveease/routes/auth.routes');
@@ -106,6 +107,7 @@ app.use('/api/v1/realestate-admin/profiles',   adminProfilesRoutes);
 app.use('/api/v1/realestate-admin/lease',      adminLeaseRoutes);
 app.use('/api/v1/realestate-admin/loans',      adminLoansRoutes);
 app.use('/api/v1/realestate-admin/pincodes',   adminPincodesRoutes);
+app.use('/api/v1/realestate-admin/agents',     adminAgentsRoutes);
 
 // ─── Routes: ServeEase (/api/v1/serveease/) ───────────────────────────────────
 app.use('/api/v1/serveease/auth',              serveeaseAuthRoutes);
