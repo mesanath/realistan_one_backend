@@ -52,8 +52,18 @@ async function uploadToS3(fileBuffer, mimeType, folder, allowedMimeTypes = IMAGE
     throw new Error(`Unsupported file type: ${mimeType}. Allowed: ${allowedMimeTypes.join(', ')}`);
   }
 
-  // Dev / CI: S3 not configured — return a placeholder URL and warn
-  if (!process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key') {
+  // Dev / CI: S3 not really configured — return a placeholder URL and warn. Also true under
+  // NODE_ENV=test regardless of AWS_ACCESS_KEY_ID's value: CI's workflow sets
+  // AWS_ACCESS_KEY_ID=test/AWS_SECRET_ACCESS_KEY=test (filler so other AWS SDK clients have
+  // *something* defined, not real credentials), which isn't the .env.example placeholder string
+  // this check used to special-case — that gap meant an actual test hitting this function would
+  // attempt a real S3 PutObjectCommand with bogus credentials and fail. No existing test called
+  // this path before propertyVerification.test.js was the first to actually exercise it.
+  if (
+    process.env.NODE_ENV === 'test' ||
+    !process.env.AWS_ACCESS_KEY_ID ||
+    process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key'
+  ) {
     const placeholder = `https://placeholder.serveease.dev/${folder}/${Date.now()}-mock${EXT_MAP[mimeType] || '.jpg'}`;
     logger.warn(`[UPLOAD] S3 not configured — returning placeholder URL: ${placeholder}`);
     return placeholder;
