@@ -33,17 +33,21 @@ const SERVEEASE_ROLES = ['admin', 'operations', 'customer_services_management'];
 //                        realistan "reply / update status" surface, granted
 //                        to customer_services_management as well
 //   AdminConsoleUsers  - creating/editing/deleting admin console users
+//   PropertyVerification - review property verification requests (approve/reject uploaded
+//                        title deed/encumbrance certificate/RERA/tax receipt/litigation search
+//                        documents); customer_services_management gets read-only so support staff
+//                        can see status without being able to approve/reject themselves.
 const REALISTAN_ACCESS_BY_ROLE = {
     admin: {
-        readAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers'],
-        writeAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers'],
+        readAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers', 'PropertyVerification'],
+        writeAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'AdminConsoleUsers', 'PropertyVerification'],
     },
     operations: {
-        readAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus'],
-        writeAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus'],
+        readAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'PropertyVerification'],
+        writeAccess: ['Articles', 'User', 'Inquiries', 'InquiryStatus', 'PropertyVerification'],
     },
     customer_services_management: {
-        readAccess: ['Articles', 'User', 'Inquiries'],
+        readAccess: ['Articles', 'User', 'Inquiries', 'PropertyVerification'],
         writeAccess: ['InquiryStatus'],
     },
 };

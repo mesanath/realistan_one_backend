@@ -13,6 +13,7 @@ const auditLogSchema = new mongoose.Schema({
       'dispute_created', 'dispute_resolved',
       'photo_uploaded',
       'agent_login_failed', 'agent_login_success',
+      'property_verification_submitted', 'property_verification_reviewed',
     ],
     required: true,
   },

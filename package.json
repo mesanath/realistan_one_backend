@@ -24,6 +24,7 @@
     "@aws-sdk/client-s3": "^3.363.0",
     "@aws-sdk/s3-request-presigner": "^3.363.0",
     "@elastic/elasticsearch": "^8.16.2",
+    "agenda": "^5.0.0",
     "apple-signin-auth": "^1.7.5",
     "async-redis": "^2.0.0",
     "axios": "^1.7.9",

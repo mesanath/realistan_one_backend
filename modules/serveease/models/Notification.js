@@ -15,6 +15,7 @@ const notificationSchema = new mongoose.Schema({
       'review_prompt', 'promo_offer', 'general',
       'skill_request_approved', 'skill_request_rejected', 'credentials_updated',
       'dispute_reply', 'dispute_resolved',
+      'property_verification_approved', 'property_verification_rejected',
     ],
     required: true,
   },

@@ -3,7 +3,34 @@ const router = require('express').Router();
 const { authenticate, requireAccess } = require('../../../src/middleware/admin-auth.middleware');
 const validate = require('../../../src/middleware/validate.middleware');
 const { getPropetiesList, getPropetiesDetails, addProperty, editProperty, deleteProperty } = require('../controllers/property.controller');
-const { addPropertySchema, editPropertySchema, propertyIDParamSchema } = require('../validators/property.validator');
+const verificationCtrl = require('../controllers/propertyVerification.controller');
+const { addPropertySchema, editPropertySchema, propertyIDParamSchema, verificationIdParamSchema, reviewVerificationSchema } = require('../validators/property.validator');
+
+// Mounted before the '/:propertyID' catch-all below — otherwise Express would match
+// '/verification' as a propertyID value on that route instead of reaching these.
+router.get(
+    '/verification',
+    authenticate,
+    requireAccess('PropertyVerification', 'read'),
+    verificationCtrl.getVerificationRequests
+);
+
+router.get(
+    '/verification/:id',
+    authenticate,
+    requireAccess('PropertyVerification', 'read'),
+    validate(verificationIdParamSchema, 'params'),
+    verificationCtrl.getVerificationRequestById
+);
+
+router.patch(
+    '/verification/:id',
+    authenticate,
+    requireAccess('PropertyVerification', 'write'),
+    validate(verificationIdParamSchema, 'params'),
+    validate(reviewVerificationSchema),
+    verificationCtrl.reviewVerificationRequest
+);
 
 router.get(
     '/',
