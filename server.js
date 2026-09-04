@@ -20,6 +20,12 @@ connectMongoose();
 const { connectRedis } = require('./modules/serveease/config/redis');
 connectRedis().catch(err => logger.warn('Redis connection failed (non-fatal):', err.message));
 
+// ─── Agenda (MongoDB-backed background job queue) ────────────────────────────
+// Deliberately started here, not in src/app.js — tests require src/app.js directly via
+// supertest and must never open an Agenda/Mongo connection as a side effect of that.
+const { startAgenda } = require('./src/jobs/agenda');
+startAgenda().catch(err => logger.warn('Agenda failed to start (non-fatal):', err.message));
+
 // ─── HTTP server ─────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const server = http.createServer(app);

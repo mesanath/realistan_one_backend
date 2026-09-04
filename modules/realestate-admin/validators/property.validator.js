@@ -93,3 +93,12 @@ exports.editPropertySchema = z.object({
 exports.propertyIDParamSchema = z.object({
     propertyID: z.string({ required_error: 'propertyID param is required' }).min(1, 'propertyID cannot be empty'),
 });
+
+exports.verificationIdParamSchema = z.object({
+    id: z.string({ required_error: 'id param is required' }).min(1, 'id cannot be empty'),
+});
+
+exports.reviewVerificationSchema = z.object({
+    action: z.enum(['approve', 'reject'], { required_error: 'action is required', invalid_type_error: 'action must be "approve" or "reject"' }),
+    note: z.string().trim().max(500, 'note must be under 500 characters').optional(),
+});

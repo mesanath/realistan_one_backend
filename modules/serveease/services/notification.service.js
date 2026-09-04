@@ -197,6 +197,21 @@ const notify = {
       payload,
     }),
 
+  // Realestate-admin-action -> owner-notification wiring, same in_app-only shape as
+  // skillRequestReviewed above — reused rather than building a parallel realestate
+  // notification system (see propertyVerification.controller.js in realestate-admin).
+  propertyVerificationReviewed: (ownerId, approved, payload) =>
+    send({
+      userId: ownerId, userRole: 'customer',
+      type: approved ? 'property_verification_approved' : 'property_verification_rejected',
+      channel: 'in_app',
+      title: approved ? 'Property Verified' : 'Verification Rejected',
+      body: approved
+        ? `Your property has been verified — the "Verified" badge is now live on your listing.`
+        : `Your property verification request was rejected. Check the review note and resubmit.`,
+      payload,
+    }),
+
   credentialsUpdated: (agentId, payload) =>
     send({
       userId: agentId, userRole: 'agent', type: 'credentials_updated', channel: 'in_app',
